@@ -1,10 +1,6 @@
-module main
+module gowork
 
 go 1.17
-
-replace gowork => ../../
-
-require gowork v0.0.0
 
 require (
 	go.uber.org/atomic v1.7.0 // indirect

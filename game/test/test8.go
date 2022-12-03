@@ -7,7 +7,7 @@ import (
 
 func isFileExsit(filename string) bool {
 	_, err := os.Stat(filename)
-	//fmt.Println("isFileExsit os.Stat=", err)
+	fmt.Println("isFileExsit os.Stat=", err, os.IsNotExist(err))
 	if os.IsNotExist(err) {
 		return false
 	} else {
@@ -17,7 +17,8 @@ func isFileExsit(filename string) bool {
 
 func main() {
 	content := "11111122222\n"
-	filename := "./out.txt"
+	//filename := "./out.txt"
+	filename := "./test2"
 
 	var err error
 
@@ -25,12 +26,14 @@ func main() {
 	var file *os.File
 	if isFileExsit(filename) {
 		file, err = os.OpenFile(filename, os.O_APPEND, 0666)
+		fmt.Println("1111==", file, err)
 		if err != nil {
 			fmt.Println("main open file err", err.Error())
 			panic(err)
 		}
 	} else {
 		file, err = os.Create(filename)
+		fmt.Println("2222==", file, err)
 		if err != nil {
 			fmt.Println("main create file err", err.Error())
 			panic(err)
