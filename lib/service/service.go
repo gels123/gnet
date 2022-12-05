@@ -11,7 +11,6 @@ import (
 	"math/rand"
 
 	"github.com/pkg/errors"
-	"github.com/xiaonanln/goTimer"
 	"github.com/xiaonanln/goworld/engine/common"
 	"github.com/xiaonanln/goworld/engine/entity"
 	"github.com/xiaonanln/goworld/engine/gwlog"
@@ -126,7 +125,7 @@ func checkServices() {
 
 	kvreg.TraverseByPrefix(serviceKvregPrefix, func(key string, val string) {
 		servicePath := strings.Split(key[serviceKvregPrefixLen:], "/")
-		//gwlog.Infof("service: found service %v = %+v", servicePath, val)
+		//logzap.Infof("service: found service %v = %+v", servicePath, val)
 
 		if len(servicePath) == 1 {
 			// ServiceName#ShardIndex = gameX

@@ -58,7 +58,7 @@ func (dcm *DispatcherConnMgr) String() string {
 }
 
 func (dcm *DispatcherConnMgr) assureConnected() *DispatcherClient {
-	//gwlog.Debugf("assureConnected: _dispatcherClient", _dispatcherClient)
+	//logzap.Debugf("assureConnected: _dispatcherClient", _dispatcherClient)
 	var err error
 	dc := dcm.getDispatcherClient()
 	for dc == nil || dc.IsClosed() {

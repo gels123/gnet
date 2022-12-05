@@ -3,7 +3,6 @@ package entity
 import (
 	"fmt"
 
-	"github.com/xiaonanln/go-aoi"
 	"github.com/xiaonanln/goworld/engine/common"
 	"github.com/xiaonanln/goworld/engine/consts"
 	"github.com/xiaonanln/goworld/engine/gwlog"
@@ -108,7 +107,7 @@ func (space *Space) EnableAOI(defaultAOIDistance Coord) {
 // OnRestored is called when space entity is restored
 func (space *Space) OnRestored() {
 	space.onSpaceCreated()
-	//gwlog.Debugf("space %s restored: atts=%+v", space, space.Attrs)
+	//logzap.Debugf("space %s restored: atts=%+v", space, space.Attrs)
 	aoidist := space.GetFloat(_SPACE_ENABLE_AOI_KEY)
 	if aoidist > 0 {
 		space.EnableAOI(Coord(aoidist))

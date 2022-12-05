@@ -33,8 +33,8 @@ type SimpleLogger struct {
 
 const (
 	COLOR_DEBUG_LEVEL_DESC = "[\x1b[32mdebug\x1b[0m] "
-	COLOR_INFO_LEVEL_DESC  = "[\x1b[36minfo \x1b[0m] "
-	COLOR_WARN_LEVEL_DESC  = "[\x1b[33mwarn \x1b[0m] "
+	COLOR_INFO_LEVEL_DESC  = "[\x1b[36minfo\x1b[0m] "
+	COLOR_WARN_LEVEL_DESC  = "[\x1b[33mwarn\x1b[0m] "
 	COLOR_ERROR_LEVEL_DESC = "[\x1b[31merror\x1b[0m] "
 	COLOR_FATAL_LEVEL_DESC = "[\x1b[31mfatal\x1b[0m] "
 )

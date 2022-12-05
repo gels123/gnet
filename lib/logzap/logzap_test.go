@@ -1,4 +1,4 @@
-package gwlog
+package logzap
 
 import "testing"
 

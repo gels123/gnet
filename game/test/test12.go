@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
-	"gowork/engine/log"
+	"gowork/lib/helper"
+	"gowork/lib/log"
 	"io/ioutil"
+	"runtime/debug"
 	"strconv"
 	"strings"
-
-	//"gowork/engine/gwlog"
-	"gowork/engine/utils"
-	"gowork/engine/uuid"
 	"time"
+
+	"gowork/lib/utils"
+	"gowork/lib/uuid"
 )
 
 //获取指定目录下的所有文件,包含子目录下的文件
@@ -35,16 +36,24 @@ func GetAllFiles(dirPth string) {
 	}
 }
 
+type Student2 struct {
+	name string
+	age  int
+}
+
 func main() {
 	//GetAllFiles("./test")
 	fmt.Println("============", utils.GetTimeFormat(), utils.GetTimeW1H0())
+	fmt.Println("=========sdfadf==", string(debug.Stack()))
+	fmt.Println("=========sdfadf2==", helper.GetStack())
 	fmt.Println("uuid1=", uuid.GenUUID(), "uuid2=", uuid.GenUUID(), uuid.GenFixedUUID([]byte("1")), uuid.GenFixedUUID([]byte("1")))
 
-	//gwlog.Debugf("this is a debug %d", 1)
-
 	log.Init("test", "game", log.DEBUG_LEVEL, log.DEBUG_LEVEL, 10000, 1000)
+	s := &Student2{"yyyyy", 100}
+	log.Error("hahaha %v, %v", 2, s)
+
 	for {
-		time.Sleep(time.Second)
-		log.Error("hahaha %v, %v", 2, 3)
+		log.Warn("loop log warn %v", 100)
+		time.Sleep(2 * time.Second)
 	}
 }

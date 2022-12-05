@@ -210,7 +210,7 @@ func (p *Packet) AppendData(msg interface{}) {
 // ReadData reads one data of any type from the beginning of unread payload
 func (p *Packet) ReadData(msg interface{}) {
 	b := p.ReadVarBytes()
-	//gwlog.Infof("ReadData: %s", string(b))
+	//logzap.Infof("ReadData: %s", string(b))
 	err := MSG_PACKER.UnpackMsg(b, msg)
 	if err != nil {
 		gwlog.Panic(err)

@@ -19,11 +19,11 @@ const (
 )
 
 const (
-	DEBUG_LEVEL_DESC = "[debug] "
-	INFO_LEVEL_DESC  = "[info] "
-	WARN_LEVEL_DESC  = "[warn] "
-	ERROR_LEVEL_DESC = "[error] "
-	FATAL_LEVEL_DESC = "[fatal] "
+	DEBUG_LEVEL_DESC = "[debug]"
+	INFO_LEVEL_DESC  = "[info]"
+	WARN_LEVEL_DESC  = "[warn]"
+	ERROR_LEVEL_DESC = "[error]"
+	FATAL_LEVEL_DESC = "[fatal]"
 )
 
 type Msg struct {
@@ -65,7 +65,7 @@ func SetLogger(logger Logger) {
 }
 
 func preProcess(format string, level int) string {
-	if level == INFO_LEVEL || level == WARN_LEVEL || level == FATAL_LEVEL {
+	if level == WARN_LEVEL || level == FATAL_LEVEL {
 		return format
 	}
 	if !HasCallerPos {

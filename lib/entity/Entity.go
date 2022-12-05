@@ -9,7 +9,6 @@ import (
 	"unsafe"
 
 	"github.com/pkg/errors"
-	"github.com/xiaonanln/go-aoi"
 	timer "github.com/xiaonanln/goTimer"
 	"github.com/xiaonanln/goworld/engine/common"
 	"github.com/xiaonanln/goworld/engine/consts"
@@ -360,7 +359,7 @@ func (e *Entity) dumpTimers() []byte {
 	if err != nil {
 		gwlog.TraceError("%s dump timers failed: %s", e, err)
 	}
-	//gwlog.Infof("%s dump %d timers: %v", e, len(timers), data)
+	//logzap.Infof("%s dump %d timers: %v", e, len(timers), data)
 	return data
 }
 
@@ -376,7 +375,7 @@ func (e *Entity) restoreTimers(data []byte) error {
 	now := time.Now()
 	for _, timer := range timers {
 		//if timer.rawTimer != nil {
-		//	gwlog.Panicf("raw timer should be nil")
+		//	logzap.Panicf("raw timer should be nil")
 		//}
 
 		tid := e.genTimerId()
@@ -428,7 +427,7 @@ func (e *Entity) Call(id common.EntityID, method string, args ...interface{}) {
 }
 
 func (e *Entity) syncPositionYawFromClient(x, y, z Coord, yaw Yaw) {
-	//gwlog.Infof("%s.syncPositionYawFromClient: %v,%v,%v, Yaw %v, syncing %v", e, x, y, z, Yaw, e.SyncingFromClient)
+	//logzap.Infof("%s.syncPositionYawFromClient: %v,%v,%v, Yaw %v, syncing %v", e, x, y, z, Yaw, e.SyncingFromClient)
 	if e.syncingFromClient {
 		e.setPositionYaw(Vector3{x, y, z}, yaw, true)
 	}
@@ -543,7 +542,7 @@ func (e *Entity) onCallFromRemote(methodName string, args [][]byte, clientid com
 //
 // Can override this function in custom entity type
 func (e *Entity) OnInit() {
-	//gwlog.Warnf("%s.OnInit not implemented", e)
+	//logzap.Warnf("%s.OnInit not implemented", e)
 }
 
 // OnAttrsReady is called when entity's attribute is ready
@@ -557,7 +556,7 @@ func (e *Entity) OnAttrsReady() {
 //
 // Can override this function in custom entity type
 func (e *Entity) OnCreated() {
-	//gwlog.Debugf("%s.OnCreated", e)
+	//logzap.Debugf("%s.OnCreated", e)
 }
 
 // OnFreeze is called when entity is freezed
@@ -991,7 +990,7 @@ func (e *Entity) enterLocalSpace(space *Space, pos Vector3) {
 			return
 		}
 
-		//gwlog.Infof("%s.enterLocalSpace ==> %s", e, space)
+		//logzap.Infof("%s.enterLocalSpace ==> %s", e, space)
 		e.Space.leave(e)
 		space.enter(e, pos, false)
 	})
@@ -1025,7 +1024,7 @@ func (e *Entity) cancelEnterSpace() {
 // OnQuerySpaceGameIDForMigrateAck is called by engine when query entity gameid ACK is received
 func OnQuerySpaceGameIDForMigrateAck(entityid common.EntityID, spaceid common.EntityID, spaceGameID uint16) {
 
-	//gwlog.Infof("OnQuerySpaceGameIDForMigrateAck: entityid=%s, spaceid=%s, spaceGameID=%v", entityid, spaceid, spaceGameID)
+	//logzap.Infof("OnQuerySpaceGameIDForMigrateAck: entityid=%s, spaceid=%s, spaceGameID=%v", entityid, spaceid, spaceGameID)
 
 	entity := entityManager.get(entityid)
 	if entity == nil {
@@ -1059,7 +1058,7 @@ func OnQuerySpaceGameIDForMigrateAck(entityid common.EntityID, spaceid common.En
 
 // OnMigrateRequestAck is called by engine when mgirate request Ack is received
 func OnMigrateRequestAck(entityid common.EntityID, spaceid common.EntityID, spaceGameID uint16) {
-	//gwlog.Infof("OnMigrateRequestAck: entityid=%s, spaceid=%s, spaceGameID=%v", entityid, spaceid, spaceGameID)
+	//logzap.Infof("OnMigrateRequestAck: entityid=%s, spaceid=%s, spaceGameID=%v", entityid, spaceid, spaceGameID)
 	entity := entityManager.get(entityid)
 	if entity == nil {
 		//dispatcher_client.GetDispatcherClientForSend().SendCancelMigrateRequest(entityid)
@@ -1257,7 +1256,7 @@ func CollectEntitySyncInfos() {
 	// send to dispatcher, one gate by one gate
 	if len(entitySyncInfosToGate) > 0 {
 		for gateid, packet := range entitySyncInfosToGate {
-			//gwlog.Infof("SYNC %d PAYLOAD %d", gateid, packet.GetPayloadLen())
+			//logzap.Infof("SYNC %d PAYLOAD %d", gateid, packet.GetPayloadLen())
 			dispatchercluster.SelectByGateID(gateid).SendPacket(packet)
 			packet.Release()
 		}

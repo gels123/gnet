@@ -451,7 +451,7 @@ func OnSyncPositionYawFromClient(eid common.EntityID, x, y, z Coord, yaw Yaw) {
 	e := entityManager.get(eid)
 	if e == nil {
 		// entity not found, may destroyed before call
-		//gwlog.Errorf("OnSyncPositionYawFromClient: entity %s is not found", eid)
+		//logzap.Errorf("OnSyncPositionYawFromClient: entity %s is not found", eid)
 		return
 	}
 
@@ -485,7 +485,7 @@ var gameIsReady bool
 func OnGameReady() {
 	if gameIsReady {
 		gwlog.Warnf("all games connected, but not for the first time")
-		//gwlog.Warnf("registered services: %+v", entityManager.registeredServices)
+		//logzap.Warnf("registered services: %+v", entityManager.registeredServices)
 		return
 	}
 

@@ -259,7 +259,7 @@ func readGoWorldConfig() *GoWorldConfig {
 			continue
 		}
 
-		//gwlog.Infof("Section %s", sec.Name())
+		//logzap.Infof("Section %s", sec.Name())
 		secName = strings.ToLower(secName)
 		if secName == "game_common" || secName == "gate_common" || secName == "dispatcher_common" {
 			// ignore common section here

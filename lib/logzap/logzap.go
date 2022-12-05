@@ -1,4 +1,4 @@
-package gwlog
+package logzap
 
 import (
 	"encoding/json"
@@ -24,8 +24,6 @@ var (
 	// FatalLevel level
 	FatalLevel = Level(zap.FatalLevel)
 )
-
-type logFormatFunc func(format string, args ...interface{})
 
 // Level is type of log levels
 type Level = zapcore.Level
@@ -60,7 +58,27 @@ func init() {
 	rebuildLoggerFromCfg()
 }
 
-// SetSource sets the component name (dispatcher/gate/game) of gwlog module
+func rebuildLoggerFromCfg() {
+	if newLogger, err := cfg.Build(); err == nil {
+		if logger != nil {
+			logger.Sync()
+		}
+		logger = newLogger
+		//logger = logger.With(zap.Time("ts", time.Now()))
+		if source != "" {
+			logger = logger.With(zap.String("source", source))
+		}
+		setSugar(logger.Sugar())
+	} else {
+		panic(err)
+	}
+}
+
+func setSugar(sugar_ *zap.SugaredLogger) {
+	sugar = sugar_
+}
+
+// SetSource sets the component name (dispatcher/gate/game) of logzap module
 func SetSource(source_ string) {
 	source = source_
 	rebuildLoggerFromCfg()
@@ -108,22 +126,6 @@ func ParseLevel(s string) Level {
 	return DebugLevel
 }
 
-func rebuildLoggerFromCfg() {
-	if newLogger, err := cfg.Build(); err == nil {
-		if logger != nil {
-			logger.Sync()
-		}
-		logger = newLogger
-		//logger = logger.With(zap.Time("ts", time.Now()))
-		if source != "" {
-			logger = logger.With(zap.String("source", source))
-		}
-		setSugar(logger.Sugar())
-	} else {
-		panic(err)
-	}
-}
-
 func Debugf(format string, args ...interface{}) {
 	sugar.With(zap.Time("ts", time.Now())).Debugf(format, args...)
 }
@@ -159,8 +161,4 @@ func Panic(args ...interface{}) {
 
 func Fatal(args ...interface{}) {
 	sugar.With(zap.Time("ts", time.Now())).Fatal(args...)
-}
-
-func setSugar(sugar_ *zap.SugaredLogger) {
-	sugar = sugar_
 }
