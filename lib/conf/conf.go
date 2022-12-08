@@ -10,13 +10,18 @@ import (
 	"reflect"
 )
 
+//日志配置
 var (
-	LogFilePath      string   = "loger"         //log's file path
-	LogFileLevel     int      = log.LEVEL_MAX   //log's file level
-	LogShellLevel    int      = log.DEBUG_LEVEL //log's shell level
-	LogMaxLine       int      = 10000           //log's max line per file
-	LogBufferSize    int      = 1000            //
-	LogHasColor      bool     = true
+	LogFilePath   string = "./log"         //log's file path
+	LogFileName   string = "game"          //log's file name
+	LogFileLevel  int    = log.LEVEL_MAX   //log's file level
+	LogShellLevel int    = log.DEBUG_LEVEL //log's shell level
+	LogMaxLine    int    = 10000           //log's max line per file
+	LogBufferSize int    = 2000            //log's max buffer size
+)
+
+//服务内置配置
+var (
 	CoreIsStandalone bool     = false       //set system is a standalone or multinode
 	CoreIsMaster     bool     = true        //set node is master
 	MasterListenIp   string   = "127.0.0.1" //master listen ip
@@ -32,7 +37,6 @@ func PrintCurrentConfSetToStd() {
 	fmt.Printf("LogShellLevel = %v\n", LogShellLevel)
 	fmt.Printf("LogMaxLine = %v\n", LogMaxLine)
 	fmt.Printf("LogBufferSize = %v\n", LogBufferSize)
-	fmt.Printf("LogHasColor = %v\n", LogHasColor)
 	fmt.Printf("CoreIsStandalone = %v\n", CoreIsStandalone)
 	fmt.Printf("CoreIsMaster = %v\n", CoreIsMaster)
 	fmt.Printf("MasterListenIp = %v\n", MasterListenIp)
@@ -102,7 +106,6 @@ func init() {
 
 	if mIntfs, ok := intfs.(map[string]interface{}); ok {
 		assignTo(mIntfs, &LogFilePath, `LogFilePath`)
-		assignTo(mIntfs, &LogHasColor, `LogHasCoor`)
 		assignTo(mIntfs, &CoreIsStandalone, `IsStandalone`)
 		assignTo(mIntfs, &CoreIsMaster, `IsMaster`)
 		assignTo(mIntfs, &MasterListenIp, `MasterIP`)

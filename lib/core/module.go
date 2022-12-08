@@ -4,6 +4,7 @@ import (
 	"gowork/lib/timer"
 )
 
+//module interface
 type Module interface {
 	//OnInit is is the first call in service's goroutinue.
 	OnInit()
@@ -26,7 +27,7 @@ type Module interface {
 	//~ The very beginning of initializing a service to a new Module
 	OnModuleStartup(sid ServiceID, serviceName string)
 
-	// internal method lol
+	//internal methods
 	setService(s *service)
 	getDuration() int
 }
@@ -49,10 +50,10 @@ func NewSkeleton(d int) *Skeleton {
 	return ret
 }
 
-func (s *Skeleton) setService(ser *service) {
-	s.s = ser
-	s.Id = ser.getId()
-	s.Name = ser.getName()
+func (s *Skeleton) setService(svc *service) {
+	s.s = svc
+	s.Id = svc.getId()
+	s.Name = svc.getName()
 }
 
 func (s *Skeleton) OnModuleStartup(sid ServiceID, serviceName string) {
@@ -65,7 +66,7 @@ func (s *Skeleton) getDuration() int {
 	return s.D
 }
 
-//use gob encode(not golang's standard library, see "github.com/sydnash/lotou/encoding/gob"
+//use gob encode(not golang's standard library, see "encoding/gob"
 //only support basic types and Message
 //user defined struct should encode and decode by user
 func (s *Skeleton) Send(dst ServiceID, msgType MsgType, encType EncType, cmd CmdType, data ...interface{}) {

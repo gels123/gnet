@@ -14,12 +14,6 @@ type Game struct {
 	Dst core.ServiceID
 }
 
-type XMsg struct {
-	A int32
-	B string
-	C int64
-}
-
 func (g *Game) OnMainLoop(dt int) {
 	g.Send(g.Dst, core.MSG_TYPE_NORMAL, core.MSG_ENC_TYPE_GO, "testNormal", g.Name, []byte{1, 2, 3, 4, 56})
 	g.RawSend(g.Dst, core.MSG_TYPE_NORMAL, "testNormal", g.Name, g.Id)

@@ -1,8 +1,8 @@
 package core
 
 import (
-	"github.com/sydnash/lotou/log"
-	"github.com/sydnash/lotou/vector"
+	"gowork/lib/log"
+	"gowork/lib/vector"
 	"sync"
 )
 

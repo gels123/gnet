@@ -3,15 +3,14 @@ package core
 import (
 	"errors"
 	"fmt"
-	"reflect"
-	"sync"
-	"time"
-
-	"github.com/sydnash/lotou/conf"
-	"gowork/lib/gob"
+	"gowork/lib/conf"
+	"gowork/lib/encoding/gob"
 	"gowork/lib/helper"
 	"gowork/lib/log"
 	"gowork/lib/timer"
+	"reflect"
+	"sync"
+	"time"
 )
 
 type ServiceID uint64
@@ -214,7 +213,7 @@ func (s *service) run() {
 func (s *service) runWithLoop(d int) {
 	s.loopDuration = d
 	s.loopTicker = time.NewTicker(time.Duration(d) * time.Millisecond)
-	s.ts = timer.NewTS()
+	s.ts = timer.NewTimerSchedule()
 	SafeGo(s.loopWithLoop)
 }
 
