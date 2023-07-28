@@ -14,11 +14,11 @@ import (
 )
 
 type SimpleLogger struct {
-	//file log
+	//file logs
 	fileLevel  int
 	fileLogger *log.Logger
 	baseFile   *os.File
-	outputPath string
+	filePath   string
 	fileName   string
 	curName    string
 	curIdx     int
@@ -39,7 +39,7 @@ const (
 	COLOR_FATAL_LEVEL_DESC = "[\x1b[31mfatal\x1b[0m] "
 )
 
-var color_format = []string{
+var colorFormat = []string{
 	COLOR_DEBUG_LEVEL_DESC,
 	COLOR_INFO_LEVEL_DESC,
 	COLOR_WARN_LEVEL_DESC,
@@ -47,7 +47,7 @@ var color_format = []string{
 	COLOR_FATAL_LEVEL_DESC,
 }
 
-var std_format = []string{
+var stdFormat = []string{
 	DEBUG_LEVEL_DESC,
 	INFO_LEVEL_DESC,
 	WARN_LEVEL_DESC,
@@ -67,7 +67,7 @@ func (self *SimpleLogger) doPrintf(level int, levelDesc, msg string) {
 				self.baseFile.Sync()
 				self.baseFile.Close()
 			}
-			self.baseFile, _ = self.createLogFile(self.outputPath, self.fileName)
+			self.baseFile, _ = self.createLogFile(self.filePath, self.fileName)
 			self.fileLogger = log.New(self.baseFile, "", log.Ldate|log.Lmicroseconds)
 			self.logLine = 0
 		}
@@ -77,9 +77,9 @@ func (self *SimpleLogger) doPrintf(level int, levelDesc, msg string) {
 		}
 	}
 	if level >= self.shellLevel {
-		sel_fmt := color_format
+		sel_fmt := colorFormat
 		if !self.isColored {
-			sel_fmt = std_format
+			sel_fmt = stdFormat
 		}
 		nformat := sel_fmt[level] + msg
 		log.Printf(nformat)
@@ -94,8 +94,8 @@ func (self *SimpleLogger) DoPrintf(level int, levelDesc, msg string) {
 	self.buffer <- &Msg{level, levelDesc, msg}
 }
 
-func (self *SimpleLogger) setFileOutDir(path string) {
-	self.outputPath = path
+func (self *SimpleLogger) setFilePath(filePath string) {
+	self.filePath = filePath
 }
 
 func (self *SimpleLogger) setFileName(fileName string) {
@@ -185,10 +185,10 @@ func (self *SimpleLogger) run() {
 	}()
 }
 
-func CreateLogger(path string, fileName string, fileLevel, shellLevel, maxLine, bufSize int) *SimpleLogger {
+func CreateLogger(filePath string, fileName string, fileLevel, shellLevel, maxLine, bufSize int) *SimpleLogger {
 	logger := &SimpleLogger{}
 	log.SetFlags(log.Ldate | log.Lmicroseconds)
-	logger.setFileOutDir(path)
+	logger.setFilePath(filePath)
 	logger.setFileName(fileName)
 	logger.setFileLogLevel(fileLevel)
 	logger.setShellLogLevel(shellLevel)
@@ -202,5 +202,3 @@ func CreateLogger(path string, fileName string, fileLevel, shellLevel, maxLine, 
 	}
 	return logger
 }
-
-var DefaultLogger = CreateLogger("log", "game", FATAL_LEVEL, DEBUG_LEVEL, 10000, 1000)

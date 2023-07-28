@@ -2,12 +2,11 @@ package logzap
 
 import (
 	"encoding/json"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"runtime/debug"
 	"strings"
 	"time"
-
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 var (

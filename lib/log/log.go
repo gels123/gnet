@@ -8,16 +8,16 @@ import (
 	"sync"
 )
 
-// levels
+// logs level
 const (
 	DEBUG_LEVEL = iota
 	INFO_LEVEL
 	WARN_LEVEL
 	ERROR_LEVEL
 	FATAL_LEVEL
-	LEVEL_MAX
 )
 
+// logs description
 const (
 	DEBUG_LEVEL_DESC = "[debug]"
 	INFO_LEVEL_DESC  = "[info]"
@@ -26,6 +26,7 @@ const (
 	FATAL_LEVEL_DESC = "[fatal]"
 )
 
+// logs msg
 type Msg struct {
 	level     int
 	levelDesc string
@@ -40,8 +41,7 @@ type Logger interface {
 
 var glogger Logger
 var gloggerMut sync.Mutex
-
-var HasCallerPos bool
+var gCallPos bool = true
 
 func do(level int, desc, format string, param ...interface{}) {
 	if glogger == nil {
@@ -59,6 +59,7 @@ func do(level int, desc, format string, param ...interface{}) {
 	}
 }
 
+// set glogger
 func SetLogger(logger Logger) {
 	gloggerMut.Lock()
 	glogger = logger
@@ -66,10 +67,7 @@ func SetLogger(logger Logger) {
 }
 
 func preProcess(format string, level int) string {
-	if level == WARN_LEVEL || level == FATAL_LEVEL {
-		return format
-	}
-	if !HasCallerPos {
+	if !gCallPos && level != ERROR_LEVEL && level != FATAL_LEVEL {
 		return format
 	}
 	_, file, line, ok := runtime.Caller(2)
@@ -112,18 +110,19 @@ func Close() {
 	}
 	gloggerMut.Lock()
 	glogger.Close()
+	glogger = nil
 	gloggerMut.Unlock()
 }
 
 // init log with SimpleLogger
-func Init(path string, filename string, fileLevel, shellLevel, maxLine, bufSize int) Logger {
-	logger := CreateLogger(path, filename, fileLevel, shellLevel, maxLine, bufSize)
+func Init(filePath string, filename string, fileLevel, shellLevel, maxLine, bufSize int) {
+	Close()
+	logger := CreateLogger(filePath, filename, fileLevel, shellLevel, maxLine, bufSize)
 	SetLogger(logger)
-	return logger
 }
 
 // init log with default logger
 func init() {
-	HasCallerPos = true
-	SetLogger(DefaultLogger)
+	var logger = CreateLogger("./", "gnet", FATAL_LEVEL, DEBUG_LEVEL, 1000000, 5000)
+	SetLogger(logger)
 }
