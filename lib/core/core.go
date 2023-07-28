@@ -2,8 +2,8 @@ package core
 
 import (
 	"fmt"
-	"gowork/lib/helper"
-	"gowork/lib/log"
+	"gnet/lib/helper"
+	"gnet/lib/log"
 	"reflect"
 )
 

@@ -1,6 +1,6 @@
 package gob_test
 
-import "gowork/lib/encoding/gob"
+import "gnet/lib/encoding/gob"
 import "fmt"
 import "testing"
 import "reflect"

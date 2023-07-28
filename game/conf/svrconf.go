@@ -1,6 +1,6 @@
 package conf
 
-import "gowork/lib/log"
+import "gnet/lib/log"
 
 //本地redis配置
 var (

@@ -1,7 +1,7 @@
 package log_test
 
 import (
-	"gowork/engine/log"
+	"gnet/engine/log"
 	"testing"
 	"time"
 )

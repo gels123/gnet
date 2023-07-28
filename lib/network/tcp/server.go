@@ -9,8 +9,8 @@ import (
 	"net"
 	"time"
 
-	"gowork/lib/core"
-	"gowork/lib/log"
+	"gnet/lib/core"
+	"gnet/lib/log"
 )
 
 type Server struct {

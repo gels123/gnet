@@ -1,11 +1,11 @@
 package topology
 
 import (
-	"gowork/lib/conf"
-	"gowork/lib/core"
-	"gowork/lib/encoding/gob"
-	"gowork/lib/log"
-	"gowork/lib/network/tcp"
+	"gnet/lib/conf"
+	"gnet/lib/core"
+	"gnet/lib/encoding/gob"
+	"gnet/lib/log"
+	"gnet/lib/network/tcp"
 )
 
 type Node struct {

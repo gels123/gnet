@@ -2,9 +2,9 @@ module main
 
 go 1.17
 
-replace gowork => ../../
+replace gnet => ../../
 
-require gowork v0.0.0
+require gnet v0.0.0
 
 require (
 	go.uber.org/atomic v1.7.0 // indirect

@@ -1,8 +1,8 @@
 package core
 
 import (
-	"gowork/lib/log"
-	"gowork/lib/vector"
+	"gnet/lib/log"
+	"gnet/lib/vector"
 	"sync"
 )
 

@@ -2,9 +2,9 @@ package tcp
 
 import (
 	"bufio"
-	"gowork/lib/core"
-	"gowork/lib/helper"
-	"gowork/lib/log"
+	"gnet/lib/core"
+	"gnet/lib/helper"
+	"gnet/lib/log"
 	"net"
 	"time"
 )

@@ -1,7 +1,7 @@
 package core
 
 import (
-	"gowork/lib/timer"
+	"gnet/lib/timer"
 )
 
 //module interface

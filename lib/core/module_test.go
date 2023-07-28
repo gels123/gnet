@@ -2,9 +2,9 @@ package core_test
 
 import (
 	"fmt"
-	"gowork/game/conf"
-	"gowork/lib/core"
-	"gowork/lib/log"
+	"gnet/game/conf"
+	"gnet/lib/core"
+	"gnet/lib/log"
 	"testing"
 	"time"
 )

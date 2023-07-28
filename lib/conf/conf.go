@@ -3,7 +3,7 @@ package conf
 import (
 	"encoding/json"
 	"fmt"
-	"gowork/lib/log"
+	"gnet/lib/log"
 	"io/ioutil"
 	"os"
 	"path"

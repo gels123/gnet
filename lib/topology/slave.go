@@ -1,10 +1,10 @@
 package topology
 
 import (
-	"gowork/lib/core"
-	"gowork/lib/encoding/gob"
-	"gowork/lib/log"
-	"gowork/lib/network/tcp"
+	"gnet/lib/core"
+	"gnet/lib/encoding/gob"
+	"gnet/lib/log"
+	"gnet/lib/network/tcp"
 )
 
 type slave struct {

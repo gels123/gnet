@@ -1,10 +1,10 @@
 package tcp_test
 
 import (
-	"gowork/lib/core"
-	"gowork/lib/encoding/binary"
-	"gowork/lib/log"
-	"gowork/lib/network/tcp"
+	"gnet/lib/core"
+	"gnet/lib/encoding/binary"
+	"gnet/lib/log"
+	"gnet/lib/network/tcp"
 	"testing"
 	"time"
 )

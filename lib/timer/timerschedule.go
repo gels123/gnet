@@ -1,7 +1,7 @@
 package timer
 
 import (
-	"gowork/lib/vector"
+	"gnet/lib/vector"
 	"sync"
 	"time"
 )

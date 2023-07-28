@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"gowork/lib/helper"
-	"gowork/lib/log"
+	"gnet/lib/helper"
+	"gnet/lib/log"
 	"time"
 )
 

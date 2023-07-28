@@ -1,7 +1,7 @@
 package tcp
 
 import (
-	"gowork/lib/core"
+	"gnet/lib/core"
 )
 
 const (

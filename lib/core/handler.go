@@ -2,8 +2,8 @@ package core
 
 import (
 	"errors"
-	"gowork/lib/helper"
-	"gowork/lib/vector"
+	"gnet/lib/helper"
+	"gnet/lib/vector"
 	"sync"
 )
 

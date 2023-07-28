@@ -2,7 +2,7 @@ package binary_test
 
 import (
 	"fmt"
-	"gowork/lib/encoding/binary"
+	"gnet/lib/encoding/binary"
 	"reflect"
 	"testing"
 )

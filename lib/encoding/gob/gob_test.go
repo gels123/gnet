@@ -2,8 +2,8 @@ package gob_test
 
 import (
 	"fmt"
-	"gowork/lib/core"
-	"gowork/lib/encoding/gob"
+	"gnet/lib/core"
+	"gnet/lib/encoding/gob"
 	"testing"
 )
 

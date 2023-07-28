@@ -1,9 +1,9 @@
 package topology_test
 
 import (
-	"gowork/lib/core"
-	"gowork/lib/log"
-	"gowork/lib/topology"
+	"gnet/lib/core"
+	"gnet/lib/log"
+	"gnet/lib/topology"
 	"testing"
 	"time"
 )

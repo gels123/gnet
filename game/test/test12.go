@@ -2,16 +2,16 @@ package main
 
 import (
 	"fmt"
-	"gowork/lib/helper"
-	"gowork/lib/log"
+	"gnet/lib/helper"
+	"gnet/lib/log"
 	"io/ioutil"
 	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
 
-	"gowork/lib/utils"
-	"gowork/lib/uuid"
+	"gnet/lib/utils"
+	"gnet/lib/uuid"
 )
 
 //获取指定目录下的所有文件,包含子目录下的文件

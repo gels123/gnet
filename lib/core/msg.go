@@ -1,7 +1,7 @@
 package core
 
 import (
-	"gowork/lib/encoding/gob"
+	"gnet/lib/encoding/gob"
 )
 
 type MsgType string

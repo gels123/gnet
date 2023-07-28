@@ -3,7 +3,7 @@ package tcp
 import (
 	"errors"
 
-	"gowork/lib/log"
+	"gnet/lib/log"
 	"net"
 )
 

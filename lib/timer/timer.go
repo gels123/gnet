@@ -2,8 +2,8 @@ package timer
 
 import (
 	"errors"
-	"gowork/lib/helper"
-	"gowork/lib/log"
+	"gnet/lib/helper"
+	"gnet/lib/log"
 )
 
 var (
