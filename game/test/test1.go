@@ -47,15 +47,26 @@ func main() {
 	`
 	fmt.Println("str1=", str1, str2, addstr(str1, str2), len(str2))
 
-	//
+	//类型定义
 	type myint = int32
 	var my1 myint = 100
 	fmt.Println("my1=", my1)
 
-	var ii int = 100
+	//不同类型不同处理
+	var ii int = 120
 	var vi interface{} = ii
-	n, err := vi.(string)
-	fmt.Println("====vi=", ii, n, err)
+	switch vi.(type) {
+	case string:
+		n, err := vi.(string)
+		fmt.Println("====1 vi to string", n, err)
+		break
+	case int:
+		n, err := vi.(int)
+		fmt.Println("====2 vi to int", n, err)
+		break
+	default:
+		fmt.Println("====3 vi to default")
+	}
 }
 
 func add(a int, b int) (int, int, int) {

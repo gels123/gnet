@@ -35,7 +35,7 @@ func fdiv(a int, b int) (int, error) {
 }
 
 func main() {
-	//
+	//函数指针
 	var fptr func(int, int) int
 	fptr = fadd
 	fmt.Println("test3  sum=", fptr(100, 200))

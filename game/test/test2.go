@@ -21,7 +21,7 @@ func f1() {
 	arr2 := []int{1, 2, 3, 4, 5, 6}
 	fmt.Println("====f1=== arr2=", len(arr2), cap(arr2), arr2[1:3])
 
-	//
+	//10,10=len,cap
 	arr3 := make([]int, 10, 10)
 	for i := 0; i < cap(arr3); i++ {
 		arr3[i] = 1000 + i
@@ -43,10 +43,10 @@ func f1() {
 	map1 := make(map[string]int, 100) //size
 	map1["lili"] = 100
 	map1["lilei"] = 99
-	map2 := make(map[int][]string, 5)
-	map2[1] = make([]string, 10, 10)
-	map2[1][1] = "ni"
-	map2[1][2] = "hao"
+	map2 := make(map[int][]string, 5) //map key=int, map val=[]string
+	map2[1] = make([]string, 1, 10)
+	map2[1][0] = "ni"
+	map2[1] = append(map2[1], "haohao")
 	//delete(map2, 1)
 	fmt.Println("=====f1==== map1=", map1, len(map1), "map2=", map2, len(map2))
 	for k, v := range map2 {
@@ -107,9 +107,9 @@ func f3(k *int, v *int) {
 }
 
 func main() {
-	//f1()
-	f2()
-	for {
-		time.Sleep(1)
-	}
+	f1()
+	//f2()
+	//for {
+	//	time.Sleep(1)
+	//}
 }

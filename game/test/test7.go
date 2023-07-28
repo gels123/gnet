@@ -6,10 +6,16 @@ import (
 )
 
 type MyWriter interface {
+	Read(data string) error
 	Write(data string) error
 }
 
 type MySock struct {
+	fd int
+}
+
+func (s *MySock) Read(buf string) error {
+	return nil
 }
 
 func (s *MySock) Write(data string) error {

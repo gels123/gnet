@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"runtime"
-	"strings"
 	"sync"
 )
 
@@ -19,11 +18,11 @@ const (
 )
 
 const (
-	DEBUG_LEVEL_DESC = "[debug]"
-	INFO_LEVEL_DESC  = "[info]"
-	WARN_LEVEL_DESC  = "[warn]"
-	ERROR_LEVEL_DESC = "[error]"
-	FATAL_LEVEL_DESC = "[fatal]"
+	DEBUG_LEVEL_DESC = "[debug] "
+	INFO_LEVEL_DESC  = "[info ] "
+	WARN_LEVEL_DESC  = "[warn ] "
+	ERROR_LEVEL_DESC = "[error] "
+	FATAL_LEVEL_DESC = "[fatal] "
 )
 
 type Msg struct {
@@ -58,7 +57,6 @@ func do(level int, desc, format string, param ...interface{}) {
 		panic(fmt.Sprintf(format, param...))
 	}
 }
-
 func SetLogger(logger Logger) {
 	gloggerMut.Lock()
 	glogger = logger
@@ -66,17 +64,17 @@ func SetLogger(logger Logger) {
 }
 
 func preProcess(format string, level int) string {
-	if level == WARN_LEVEL || level == FATAL_LEVEL {
+	if level == INFO_LEVEL || level == WARN_LEVEL || level == FATAL_LEVEL {
 		return format
 	}
 	if !HasCallerPos {
 		return format
 	}
-	_, file, line, ok := runtime.Caller(2)
+	pc, file, line, ok := runtime.Caller(2)
 	if ok {
-		n := strings.LastIndex(file, "/")
-		file = file[n+1:]
-		format = fmt.Sprintf("[%v:%v] ", file, line) + format
+		t := runtime.FuncForPC(pc)
+		name := t.Name()
+		format = fmt.Sprintf("[%v:%v +%v]       ", file, line, name) + format
 	}
 	return format
 }
@@ -115,14 +113,14 @@ func Close() {
 	gloggerMut.Unlock()
 }
 
-// init log with SimpleLogger
-func Init(path string, filename string, fileLevel, shellLevel, maxLine, bufSize int) Logger {
-	logger := CreateLogger(path, filename, fileLevel, shellLevel, maxLine, bufSize)
+//init log with SimpleLogger
+func Init(path string, fileLevel, shellLevel, maxLine, bufSize int) Logger {
+	logger := CreateLogger(path, fileLevel, shellLevel, maxLine, bufSize)
 	SetLogger(logger)
 	return logger
 }
 
-// init log with default logger
+//init log with default logger
 func init() {
 	HasCallerPos = true
 	SetLogger(DefaultLogger)

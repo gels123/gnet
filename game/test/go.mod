@@ -1,10 +1,10 @@
-module main
+module test
 
-go 1.17
+go 1.19
 
 replace gnet => ../../
 
-require gnet v0.0.0
+require gnet v1.0.0
 
 require (
 	go.uber.org/atomic v1.7.0 // indirect
