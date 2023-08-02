@@ -4,7 +4,7 @@ import (
 	"gnet/lib/timer"
 )
 
-//module interface
+// module interface
 type Module interface {
 	//OnInit is is the first call in service's goroutinue.
 	OnInit()
@@ -32,7 +32,7 @@ type Module interface {
 	getDuration() int
 }
 
-//Skeleton a basic implementation for Module
+// Skeleton a basic implementation for Module
 type Skeleton struct {
 	s                 *service
 	Id                ServiceID
@@ -43,8 +43,8 @@ type Skeleton struct {
 	callDispatcher    *CallHelper
 }
 
-//NewSkeleton create a Skeleton, d is the duration for OnMainLoop
-//if the parameter d is greater than 0, the OnMainLoop will be called once every d milliseconds
+// NewSkeleton create a Skeleton, d is the duration for OnMainLoop
+// if the parameter d is greater than 0, the OnMainLoop will be called once every d milliseconds
 func NewSkeleton(d int) *Skeleton {
 	ret := &Skeleton{D: d}
 	return ret
@@ -66,50 +66,50 @@ func (s *Skeleton) getDuration() int {
 	return s.D
 }
 
-//use gob encode(not golang's standard library, see "encoding/gob"
-//only support basic types and Message
-//user defined struct should encode and decode by user
+// use gob encode(not golang's standard library, see "encoding/gob"
+// only support basic types and Message
+// user defined struct should encode and decode by user
 func (s *Skeleton) Send(dst ServiceID, msgType MsgType, encType EncType, cmd CmdType, data ...interface{}) {
 	send(s.s.getId(), dst, msgType, encType, 0, cmd, data...)
 }
 
-//RawSend not encode variables, be careful use
-//variables that passed by reference may be changed by others
+// RawSend not encode variables, be careful use
+// variables that passed by reference may be changed by others
 func (s *Skeleton) RawSend(dst ServiceID, msgType MsgType, cmd CmdType, data ...interface{}) {
 	sendNoEnc(s.s.getId(), dst, msgType, 0, cmd, data...)
 }
 
-//if isForce is false, then it will just notify the sevice it need to close
-//then service can do choose close immediate or close after self clean.
-//if isForce is true, then it close immediate
+// if isForce is false, then it will just notify the sevice it need to close
+// then service can do choose close immediate or close after self clean.
+// if isForce is true, then it close immediate
 func (s *Skeleton) SendClose(dst ServiceID, isForce bool) {
 	sendNoEnc(s.s.getId(), dst, MSG_TYPE_CLOSE, 0, Cmd_None, isForce)
 }
 
-//Request send a request msg to dst, and start timeout function if timeout > 0, millisecond
-//after receiver call Respond, the responseCb will be called
+// Request send a request msg to dst, and start timeout function if timeout > 0, millisecond
+// after receiver call Respond, the responseCb will be called
 func (s *Skeleton) Request(dst ServiceID, encType EncType, timeout int, responseCb interface{}, cmd CmdType, data ...interface{}) {
 	s.s.request(dst, encType, timeout, responseCb, cmd, data...)
 }
 
-//Respond used to respond request msg
+// Respond used to respond request msg
 func (s *Skeleton) Respond(dst ServiceID, encType EncType, rid uint64, data ...interface{}) {
 	s.s.respond(dst, encType, rid, data...)
 }
 
-//Call send a call msg to dst, and start a timeout function with the conf.CallTimeOut
-//after receiver call Ret, it will return
+// Call send a call msg to dst, and start a timeout function with the conf.CallTimeOut
+// after receiver call Ret, it will return
 func (s *Skeleton) Call(dst ServiceID, encType EncType, cmd CmdType, data ...interface{}) ([]interface{}, error) {
 	return s.s.call(dst, encType, cmd, data...)
 }
 
-//CallWithTimeout send a call msg to dst, and start a timeout function with the timeout millisecond
-//after receiver call Ret, it will return
+// CallWithTimeout send a call msg to dst, and start a timeout function with the timeout millisecond
+// after receiver call Ret, it will return
 func (s *Skeleton) CallWithTimeout(dst ServiceID, encType EncType, timeout int, cmd CmdType, data ...interface{}) ([]interface{}, error) {
 	return s.s.callWithTimeout(dst, encType, timeout, cmd, data...)
 }
 
-//Schedule schedule a time with given parameter.
+// Schedule schedule a time with given parameter.
 func (s *Skeleton) Schedule(interval, repeat int, cb timer.TimerCallback) *timer.Timer {
 	if s.s == nil {
 		panic("Schedule must call after OnInit is called(not contain OnInit)")
@@ -117,7 +117,7 @@ func (s *Skeleton) Schedule(interval, repeat int, cb timer.TimerCallback) *timer
 	return s.s.schedule(interval, repeat, cb)
 }
 
-//Ret used to ret call msg
+// Ret used to ret call msg
 func (s *Skeleton) Ret(dst ServiceID, encType EncType, cid uint64, data ...interface{}) {
 	s.s.ret(dst, encType, cid, data...)
 }
@@ -171,16 +171,16 @@ func (s *Skeleton) findCallerByType(msgType MsgType) *CallHelper {
 	return caller
 }
 
-//function's first parameter must ServiceID
-//isAutoReply: is auto reply when msgType is request or call.
+// function's first parameter must ServiceID
+// isAutoReply: is auto reply when msgType is request or call.
 func (s *Skeleton) RegisterHandlerFunc(msgType MsgType, cmd CmdType, fun interface{}, isAutoReply bool) {
 	caller := s.findCallerByType(msgType)
 	caller.AddFunc(cmd, fun)
 	caller.setIsAutoReply(cmd, isAutoReply)
 }
 
-//method's first parameter must ServiceID
-//isAutoReply: is auto reply when msgType is request or call.
+// method's first parameter must ServiceID
+// isAutoReply: is auto reply when msgType is request or call.
 func (s *Skeleton) RegisterHandlerMethod(msgType MsgType, cmd CmdType, v interface{}, methodName string, isAutoReply bool) {
 	caller := s.findCallerByType(msgType)
 	caller.AddMethod(cmd, v, methodName)

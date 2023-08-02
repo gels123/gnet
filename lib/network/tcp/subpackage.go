@@ -3,7 +3,7 @@ package tcp
 import (
 	"errors"
 
-	"gnet/lib/log"
+	"gnet/lib/loggerbak"
 	"net"
 )
 
@@ -82,7 +82,7 @@ READ_LOOP:
 					status.msgLen = int(ByteSliceToInt(status.msgHeader[:]))
 				}
 				if status.msgLen > MAX_PACKET_LEN {
-					log.Error("packet length(%v) exceeds the maximum message length %v", status.msgLen, MAX_PACKET_LEN)
+					logsimple.Error("packet length(%v) exceeds the maximum message length %v", status.msgLen, MAX_PACKET_LEN)
 					return pack, ErrPacketLenExceed
 				}
 				tmp := make([]byte, status.msgLen)

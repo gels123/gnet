@@ -6,7 +6,7 @@ import (
 	"gnet/lib/conf"
 	"gnet/lib/encoding/gob"
 	"gnet/lib/helper"
-	"gnet/lib/log"
+	"gnet/lib/loggerbak"
 	"gnet/lib/timer"
 	"reflect"
 	"sync"
@@ -85,7 +85,7 @@ func (s *service) pushMSG(m *Message) {
 	case s.msgChan <- m:
 	default:
 		if s.msgChan == nil {
-			log.Warn("msg chan is closed.<%s>", s.getName())
+			logsimple.Warn("msg chan is closed.<%s>", s.getName())
 		} else {
 			panic(fmt.Sprintf("service is full.<%s>", s.getName()))
 		}
@@ -134,13 +134,13 @@ func (s *service) dispatchMSG(msg *Message) bool {
 	return false
 }
 
-//select on msgChan only
+// select on msgChan only
 func (s *service) loopSelect() (ret bool) {
 	ret = true
 	defer func() {
 		if err := recover(); err != nil {
-			log.Error("error in service<%v>", s.getName())
-			log.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
+			logsimple.Error("error in service<%v>", s.getName())
+			logsimple.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
 		}
 	}()
 	select {
@@ -167,13 +167,13 @@ func (s *service) loop() {
 	s.destroy()
 }
 
-//select on msgChan and a loop ticker
+// select on msgChan and a loop ticker
 func (s *service) loopWithLoopSelect() (ret bool) {
 	ret = true
 	defer func() {
 		if err := recover(); err != nil {
-			log.Error("error in service<%v>", s.getName())
-			log.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
+			logsimple.Error("error in service<%v>", s.getName())
+			logsimple.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
 		}
 	}()
 	select {
@@ -204,12 +204,12 @@ func (s *service) loopWithLoop() {
 	s.destroy()
 }
 
-//start a goroutinue with no ticker for main loop
+// start a goroutinue with no ticker for main loop
 func (s *service) run() {
 	SafeGo(s.loop)
 }
 
-//start a goroutinue with ticker for main loop
+// start a goroutinue with ticker for main loop
 func (s *service) runWithLoop(d int) {
 	s.loopDuration = d
 	s.loopTicker = time.NewTicker(time.Duration(d) * time.Millisecond)
@@ -217,7 +217,7 @@ func (s *service) runWithLoop(d int) {
 	SafeGo(s.loopWithLoop)
 }
 
-//respndCb is a function like: func(isok bool, ...interface{})  the first param must be a bool
+// respndCb is a function like: func(isok bool, ...interface{})  the first param must be a bool
 func (s *service) request(dst ServiceID, encType EncType, timeout int, respondCb interface{}, cmd CmdType, data ...interface{}) {
 	s.requestMutex.Lock()
 	id := s.requestId
@@ -265,7 +265,7 @@ func (s *service) respond(dst ServiceID, encType EncType, rid uint64, data ...in
 	lowLevelSend(s.getId(), dst, MSG_TYPE_RESPOND, encType, rid, Cmd_None, data...)
 }
 
-//return request callback by request id
+// return request callback by request id
 func (s *service) getDeleteRequestCb(id uint64) (requestCB, bool) {
 	s.requestMutex.Lock()
 	cb, ok := s.requestMap[id]

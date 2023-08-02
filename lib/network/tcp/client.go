@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"gnet/lib/core"
 	"gnet/lib/helper"
-	"gnet/lib/log"
+	"gnet/lib/loggerbak"
 	"net"
 	"time"
 )
@@ -37,7 +37,7 @@ func NewClient(host, port string, hostID core.ServiceID) *Client {
 	address := net.JoinHostPort(host, port)
 	tcpAddress, err := net.ResolveTCPAddr("tcp", address)
 	if err != nil {
-		log.Error("tcp resolve failed.")
+		logsimple.Error("tcp resolve failed.")
 		return nil
 	}
 	c.RemoteAddress = tcpAddress
@@ -68,7 +68,7 @@ func (c *Client) sendBufferOutMsgAndData(data []byte) {
 		if c.bufferForOutMsg.Len() > 0 {
 			_, err := c.outbuffer.Write(c.bufferForOutMsg.Bytes())
 			if err != nil {
-				log.Error("client onSend tmp out msg err: %s", err)
+				logsimple.Error("client onSend tmp out msg err: %s", err)
 				c.onConError()
 			}
 			c.bufferForOutMsg.Reset()
@@ -76,14 +76,14 @@ func (c *Client) sendBufferOutMsgAndData(data []byte) {
 		if data != nil {
 			_, err := c.outbuffer.Write(data)
 			if err != nil {
-				log.Error("client onSend writebuff err: %s", err)
+				logsimple.Error("client onSend writebuff err: %s", err)
 				c.onConError()
 			}
 		}
 		if c.Con != nil {
 			err := c.outbuffer.Flush()
 			if err != nil {
-				log.Error("client onSend err: %s", err)
+				logsimple.Error("client onSend err: %s", err)
 				c.onConError()
 			}
 		}
@@ -102,7 +102,7 @@ func (c *Client) onSend(src core.ServiceID, param ...interface{}) {
 		defer func() {
 			if err := recover(); err != nil {
 				if err == bytes.ErrTooLarge {
-					log.Error("client out msg buffer is too large, we will reset it.")
+					logsimple.Error("client out msg buffer is too large, we will reset it.")
 					c.bufferForOutMsg.Reset()
 				} else {
 					panic(err)
@@ -141,7 +141,7 @@ func (c *Client) OnNormalMSG(msg *core.Message) {
 func (c *Client) connect(n int) {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
+			logsimple.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
 		}
 	}()
 	i := 0
@@ -180,14 +180,14 @@ func (c *Client) connect(n int) {
 		go func() {
 			defer func() {
 				if err := recover(); err != nil {
-					log.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
+					logsimple.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
 				}
 			}()
 			for {
 				//split package
 				pack, err := Subpackage(c.inbuffer, c.Con, c.parseCache)
 				if err != nil {
-					log.Error("client read msg failed: %s", err)
+					logsimple.Error("client read msg failed: %s", err)
 					c.onConError()
 					break
 				}

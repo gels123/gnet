@@ -1,9 +1,5 @@
 package conf
 
-import (
-	"gnet/lib/log"
-)
-
 // redis配置定义
 type stRedisConf struct {
 	Host string
@@ -15,16 +11,17 @@ type stRedisConf struct {
 
 // 日志配置定义
 type stLogsConf struct {
-	FilePath   string
-	FileName   string
-	FileLevel  int
-	ShellLevel int
-	MaxLine    int
-	BufSize    int
+	FilePath string // 日志路径(绝对路径如"/data/", 相对路径如"./log")
+	FileName string // 日志名称
+	MaxSize  int64  // 最大文件大小(字节B)
 }
 
 // 相关配置
 var (
+	// 是否debug模式
+	Debug = true
+	// 是否开启后门
+	BackDoor = true
 	// redis配置
 	RedisConf = stRedisConf{
 		Host: "172.16.10.200",
@@ -35,11 +32,8 @@ var (
 	}
 	// 日志配置
 	LogsConf = stLogsConf{
-		FilePath:   "../../",
-		FileName:   "game",
-		FileLevel:  log.DEBUG_LEVEL,
-		ShellLevel: log.DEBUG_LEVEL,
-		MaxLine:    1000000,
-		BufSize:    5000,
+		FilePath: "./log",
+		FileName: "gamelog",
+		MaxSize:  512000000,
 	}
 )

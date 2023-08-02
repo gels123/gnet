@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"gnet/game/conf"
 	"gnet/lib/core"
-	"gnet/lib/log"
+	"gnet/lib/loggerbak"
 	"testing"
 	"time"
 )
@@ -29,7 +29,7 @@ func (g *Game) OnMainLoop(dt int) {
 func (g *Game) OnInit() {
 	//test for go and no enc
 	g.RegisterHandlerFunc(core.MSG_TYPE_NORMAL, "testNormal", func(src core.ServiceID, data ...interface{}) {
-		log.Info("%v, %v", src, data)
+		logsimple.Info("%v, %v", src, data)
 	}, true)
 	g.RegisterHandlerFunc(core.MSG_TYPE_REQUEST, "testRequest", func(src core.ServiceID, data ...interface{}) string {
 		return "world"
@@ -40,7 +40,7 @@ func (g *Game) OnInit() {
 }
 
 func TestModule(t *testing.T) {
-	log.Init(conf.LogFilePath, conf.LogFileName, conf.LogFileLevel, conf.LogShellLevel, conf.LogMaxLine, conf.LogBufferSize)
+	logsimple.Init(conf.LogFilePath, conf.LogFileName, conf.LogFileLevel, conf.LogShellLevel, conf.LogMaxLine, conf.LogBufferSize)
 	id1 := core.StartService(&core.ModuleParam{
 		N: "g1",
 		M: &Game{Skeleton: core.NewSkeleton(0)},

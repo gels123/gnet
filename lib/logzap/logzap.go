@@ -1,97 +1,238 @@
 package logzap
 
 import (
-	"encoding/json"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"github.com/pkg/errors"
+	"gnet/lib/utils"
+	"io"
+	"os"
+	"path/filepath"
 	"runtime/debug"
 	"strings"
 	"time"
+
+	"gnet/game/conf"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var (
 	// DebugLevel level
-	DebugLevel = Level(zap.DebugLevel)
+	DebugLevel = zapcore.Level(zap.DebugLevel)
 	// InfoLevel level
-	InfoLevel = Level(zap.InfoLevel)
+	InfoLevel = zapcore.Level(zap.InfoLevel)
 	// WarnLevel level
-	WarnLevel = Level(zap.WarnLevel)
+	WarnLevel = zapcore.Level(zap.WarnLevel)
 	// ErrorLevel level
-	ErrorLevel = Level(zap.ErrorLevel)
+	ErrorLevel = zapcore.Level(zap.ErrorLevel)
 	// PanicLevel level
-	PanicLevel = Level(zap.PanicLevel)
+	PanicLevel = zapcore.Level(zap.PanicLevel)
 	// FatalLevel level
-	FatalLevel = Level(zap.FatalLevel)
+	FatalLevel = zapcore.Level(zap.FatalLevel)
 )
-
-// Level is type of log levels
-type Level = zapcore.Level
 
 var (
-	cfg          zap.Config
-	logger       *zap.Logger
-	sugar        *zap.SugaredLogger
-	source       string
-	currentLevel Level
+	cfg      *zap.Config
+	logger   *zap.Logger
+	sugar    *zap.SugaredLogger
+	source   string
+	filePath string        //文件路径
+	fileName string        //文件名称
+	maxSize  int64         //是否按大小分文件, 默认为是(大于0)
+	curLevel zapcore.Level //日志等级
+	display  bool          //终端是否打印
 )
 
-func init() {
-	var err error
-	cfgJson := []byte(`{
-		"level": "debug",
-		"outputPaths": ["stderr"],
-		"errorOutputPaths": ["stderr"],
-		"encoding": "console",
-		"encoderConfig": {
-			"messageKey": "message",
-			"levelKey": "level",
-			"levelEncoder": "lowercase"
-		}
-	}`)
-	currentLevel = DebugLevel
+// 日志未按日期、大小分文件打印
+//func init() {
+//	if conf.Debug {
+//		curLevel = DebugLevel
+//		cfg = &zap.Config{
+//			Level:       zap.NewAtomicLevelAt(DebugLevel),
+//			Development: true,
+//			Sampling: &zap.SamplingConfig{
+//				Initial:    100,
+//				Thereafter: 100,
+//			},
+//			Encoding: "json",
+//			EncoderConfig: zapcore.EncoderConfig{
+//				TimeKey:     "ts",
+//				LevelKey:    "lv",
+//				NameKey:     "logger",
+//				CallerKey:   "caller",
+//				FunctionKey: zapcore.OmitKey,
+//				MessageKey:  "msg",
+//				//StacktraceKey:  "stack",
+//				LineEnding:     zapcore.DefaultLineEnding,
+//				EncodeLevel:    zapcore.LowercaseLevelEncoder,
+//				EncodeTime:     zapcore.EpochTimeEncoder,
+//				EncodeDuration: zapcore.StringDurationEncoder,
+//				EncodeCaller:   zapcore.ShortCallerEncoder,
+//			},
+//			OutputPaths:      []string{"stderr"},
+//			ErrorOutputPaths: []string{"stderr"},
+//		}
+//	} else {
+//		curLevel = InfoLevel
+//		cfg = &zap.Config{
+//			Level:       zap.NewAtomicLevelAt(InfoLevel),
+//			Development: false,
+//			Sampling: &zap.SamplingConfig{
+//				Initial:    100,
+//				Thereafter: 100,
+//			},
+//			Encoding: "json",
+//			EncoderConfig: zapcore.EncoderConfig{
+//				//TimeKey:     "ts",
+//				LevelKey:    "lv",
+//				NameKey:     "logger",
+//				CallerKey:   "caller",
+//				FunctionKey: zapcore.OmitKey,
+//				MessageKey:  "msg",
+//				//StacktraceKey:  "stack",
+//				LineEnding:     zapcore.DefaultLineEnding,
+//				EncodeLevel:    zapcore.LowercaseLevelEncoder,
+//				EncodeTime:     zapcore.EpochTimeEncoder,
+//				EncodeDuration: zapcore.SecondsDurationEncoder,
+//				EncodeCaller:   zapcore.ShortCallerEncoder,
+//			},
+//			OutputPaths:      []string{"stderr"},
+//			ErrorOutputPaths: []string{"stderr"},
+//		}
+//	}
+//	buildLogger()
+//}
 
-	if err = json.Unmarshal(cfgJson, &cfg); err != nil {
-		panic(err)
+// 日志按日期、大小分文件打印
+func init() {
+	filePath = conf.LogsConf.FilePath
+	if filePath[0] == '.' {
+		filePath = filepath.Join(utils.GetCurDir(), filePath) // '.'开头认为是相对路径
 	}
-	cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	rebuildLoggerFromCfg()
+	if filePath != "" {
+		_, err := os.Stat(filePath)
+		if os.IsNotExist(err) {
+			err = os.MkdirAll(filePath, os.ModePerm)
+			if err != nil {
+				panic(errors.Wrap(err, `genFileName err`))
+			}
+		}
+	}
+	fileName = conf.LogsConf.FileName + ".%Y%m%d"
+
+	maxSize = conf.LogsConf.MaxSize
+	if maxSize <= 0 {
+		panic("logzap init err: invalid maxSize.")
+	}
+	if conf.Debug {
+		curLevel = DebugLevel
+		display = true
+	} else {
+		curLevel = InfoLevel
+		display = false
+	}
+
+	cfg = &zap.Config{
+		Level:       zap.NewAtomicLevelAt(curLevel),
+		Development: conf.Debug,
+		Sampling: &zap.SamplingConfig{
+			Initial:    20,
+			Thereafter: 10,
+		},
+		Encoding: "json",
+		EncoderConfig: zapcore.EncoderConfig{
+			TimeKey:     "ts",
+			LevelKey:    "lv",
+			NameKey:     "logger",
+			CallerKey:   "caller",
+			FunctionKey: zapcore.OmitKey,
+			MessageKey:  "msg",
+			//StacktraceKey:  "stack",
+			LineEnding:     zapcore.DefaultLineEnding,
+			EncodeLevel:    zapcore.LowercaseLevelEncoder,
+			EncodeTime:     zapcore.EpochTimeEncoder,
+			EncodeDuration: zapcore.SecondsDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+		},
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stderr"},
+	}
+
+	encoder := zapcore.NewJSONEncoder(cfg.EncoderConfig)
+
+	var opts []zap.Option
+	if cfg.Development {
+		opts = append(opts, zap.Development())
+	}
+	if !cfg.DisableStacktrace {
+		opts = append(opts, zap.AddStacktrace(ErrorLevel))
+	}
+	if !cfg.DisableCaller {
+		opts = append(opts, zap.AddCaller())
+	}
+	if cell := cfg.Sampling; cell != nil {
+		opts = append(opts, zap.WrapCore(func(core zapcore.Core) zapcore.Core {
+			var samplerOpts []zapcore.SamplerOption
+			if cell.Hook != nil {
+				samplerOpts = append(samplerOpts, zapcore.SamplerHook(cell.Hook))
+			}
+			return zapcore.NewSamplerWithOptions(
+				core,
+				time.Second,
+				cfg.Sampling.Initial,
+				cfg.Sampling.Thereafter,
+				samplerOpts...,
+			)
+		}))
+	}
+
+	var writers []zapcore.WriteSyncer
+	if display {
+		writers = append(writers, zapcore.AddSync(os.Stdout))
+	}
+	var divHook io.Writer
+	divHook = newDivWriter(filePath, fileName, maxSize)
+	writers = append(writers, zapcore.AddSync(divHook))
+
+	core := zapcore.NewTee(
+		zapcore.NewCore(encoder, zapcore.NewMultiWriteSyncer(writers...), curLevel),
+	)
+	logger = zap.New(core, opts...)
+	if source != "" {
+		logger = logger.With(zap.String("source", source))
+	}
+	sugar = logger.Sugar()
 }
 
-func rebuildLoggerFromCfg() {
+func buildLogger() {
 	if newLogger, err := cfg.Build(); err == nil {
 		if logger != nil {
 			logger.Sync()
 		}
 		logger = newLogger
-		//logger = logger.With(zap.Time("ts", time.Now()))
 		if source != "" {
 			logger = logger.With(zap.String("source", source))
 		}
-		setSugar(logger.Sugar())
+		sugar = logger.Sugar()
 	} else {
 		panic(err)
 	}
 }
 
-func setSugar(sugar_ *zap.SugaredLogger) {
-	sugar = sugar_
-}
-
-// SetSource sets the component name (dispatcher/gate/game) of logzap module
+// SetSource sets the component name (dispatcher/gate/game) of module
 func SetSource(source_ string) {
 	source = source_
-	rebuildLoggerFromCfg()
+	buildLogger()
 }
 
 // SetLevel sets the log level
-func SetLevel(lv Level) {
-	currentLevel = lv
+func SetLevel(lv zapcore.Level) {
+	curLevel = lv
 	cfg.Level.SetLevel(lv)
 }
 
 // GetLevel get the current log level
-func GetLevel() Level {
-	return currentLevel
+func GetLevel() zapcore.Level {
+	return curLevel
 }
 
 // TraceError prints the stack and error
@@ -103,11 +244,11 @@ func TraceError(format string, args ...interface{}) {
 // SetOutput sets the output writer
 func SetOutput(outputs []string) {
 	cfg.OutputPaths = outputs
-	rebuildLoggerFromCfg()
+	buildLogger()
 }
 
 // ParseLevel converts string to Levels
-func ParseLevel(s string) Level {
+func ParseLevel(s string) zapcore.Level {
 	if strings.ToLower(s) == "debug" {
 		return DebugLevel
 	} else if strings.ToLower(s) == "info" {
@@ -125,39 +266,64 @@ func ParseLevel(s string) Level {
 	return DebugLevel
 }
 
+func Debugw(format string, args ...interface{}) {
+	sugar.With(zap.Time("ts", time.Now())).Debugw(format, args...)
+}
+
 func Debugf(format string, args ...interface{}) {
 	sugar.With(zap.Time("ts", time.Now())).Debugf(format, args...)
+}
+
+func Infow(format string, args ...interface{}) {
+	sugar.With(zap.Time("ts", time.Now())).Infow(format, args...)
 }
 
 func Infof(format string, args ...interface{}) {
 	sugar.With(zap.Time("ts", time.Now())).Infof(format, args...)
 }
 
+func Warnw(format string, args ...interface{}) {
+	sugar.With(zap.Time("ts", time.Now())).Warnw(format, args...)
+}
+
 func Warnf(format string, args ...interface{}) {
 	sugar.With(zap.Time("ts", time.Now())).Warnf(format, args...)
-}
-
-func Errorf(format string, args ...interface{}) {
-	sugar.With(zap.Time("ts", time.Now())).Errorf(format, args...)
-}
-
-func Panicf(format string, args ...interface{}) {
-	sugar.With(zap.Time("ts", time.Now())).Panicf(format, args...)
-}
-
-func Fatalf(format string, args ...interface{}) {
-	debug.PrintStack()
-	sugar.With(zap.Time("ts", time.Now())).Fatalf(format, args...)
 }
 
 func Error(args ...interface{}) {
 	sugar.With(zap.Time("ts", time.Now())).Error(args...)
 }
 
+func Errorw(format string, args ...interface{}) {
+	sugar.With(zap.Time("ts", time.Now())).Errorw(format, args...)
+}
+
+func Errorf(format string, args ...interface{}) {
+	sugar.With(zap.Time("ts", time.Now())).Errorf(format, args...)
+}
+
 func Panic(args ...interface{}) {
 	sugar.With(zap.Time("ts", time.Now())).Panic(args...)
 }
 
+func Panicw(format string, args ...interface{}) {
+	sugar.With(zap.Time("ts", time.Now())).Panicw(format, args...)
+}
+
+func Panicf(format string, args ...interface{}) {
+	sugar.With(zap.Time("ts", time.Now())).Panicf(format, args...)
+}
+
 func Fatal(args ...interface{}) {
 	sugar.With(zap.Time("ts", time.Now())).Fatal(args...)
+}
+
+func Fatalw(format string, args ...interface{}) {
+	debug.PrintStack()
+	sugar.With(zap.Time("ts", time.Now())).Fatalw(format, args...)
+}
+
+func Fatalf(format string, args ...interface{}) {
+	debug.PrintStack()
+	sugar.With(zap.Time("ts", time.Now())).Fatalf(format, args...)
 }

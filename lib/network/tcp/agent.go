@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"gnet/lib/core"
 	"gnet/lib/helper"
-	"gnet/lib/log"
 	"net"
 	"time"
 )
@@ -43,18 +42,18 @@ func (a *Agent) OnInit() {
 	a.inbuffer = make([]byte, DEFAULT_RECV_BUFF_LEN)
 	a.outbuffer = bufio.NewWriter(a.Con)
 	a.parseCache = &ParseCache{}
-	log.Info("receive a connect at: %v->%v", a.Con.LocalAddr(), a.Con.RemoteAddr())
+	logsimple.Info("receive a connect at: %v->%v", a.Con.LocalAddr(), a.Con.RemoteAddr())
 	a.sendToHost(core.MSG_TYPE_SOCKET, AGENT_ARRIVE, a.Con.LocalAddr().String(), a.Con.RemoteAddr().String())
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				log.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
+				logsimple.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
 			}
 		}()
 		for {
 			pack, err := Subpackage(a.inbuffer, a.Con, a.parseCache)
 			if err != nil {
-				log.Error("agent read msg failed: %s", err)
+				logsimple.Error("agent read msg failed: %s", err)
 				a.onConnectError()
 				break
 			}
@@ -81,7 +80,7 @@ func (a *Agent) OnMainLoop(dt int) {
 	if !a.hasDataArrived {
 		a.leftTimeBeforArrived -= dt
 		if a.leftTimeBeforArrived < 0 {
-			log.Error("agent hasn't got any data within %v ms", AgentNoDataHoldtime)
+			logsimple.Error("agent hasn't got any data within %v ms", AgentNoDataHoldtime)
 			a.SendClose(a.Id, false)
 		}
 	}
@@ -97,12 +96,12 @@ func (a *Agent) OnNormalMSG(msg *core.Message) {
 		a.Con.SetWriteDeadline(time.Now().Add(time.Second * 20))
 		msg := data[0].([]byte)
 		if _, err := a.outbuffer.Write(msg); err != nil {
-			log.Error("agent write msg failed: %s", err)
+			logsimple.Error("agent write msg failed: %s", err)
 			a.onConnectError()
 			return
 		}
 		if err := a.outbuffer.Flush(); err != nil {
-			log.Error("agent flush msg failed: %s", err)
+			logsimple.Error("agent flush msg failed: %s", err)
 			a.onConnectError()
 			return
 		}
@@ -120,7 +119,7 @@ func (a *Agent) onConnectError() {
 }
 
 func (a *Agent) close() {
-	log.Info("close agent. %v", a.Con.RemoteAddr())
+	logsimple.Info("close agent. %v", a.Con.RemoteAddr())
 	a.Con.Close()
 }
 

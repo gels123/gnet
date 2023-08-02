@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -18,7 +19,7 @@ func logf1() {
 	////log.Fatal("hahaha %v, %v", 2, s)
 }
 
-func logf2() {
+func log_zap() {
 	//zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	//log.Print("hello world")
 
@@ -32,53 +33,42 @@ func logf2() {
 	//	"backoff", time.Second,
 	//)
 	//sugar.Infof("Failed to fetch URL: %s", "wwwwwffff")
+	//logger.Info("my test log", zap.Bool("player", true), zap.String("name", "llily"))
+	//
+	//logzap.Infof("Failed to fetch URL: %s", "xxxx1")
+	//logzap.Errorf("Failed to fetch URL: %s", "xxxx2")
+}
 
-	SetSource("gwlog_test")
-	SetOutput([]string{"stderr", "gwlog_test.log"})
-	SetLevel(DebugLevel)
+type Intf interface {
+	callf1(num int) int
+	callf2(num int) int
+}
+type Ttf struct {
+}
 
-	if lv := ParseLevel("debug"); lv != DebugLevel {
-		t.Fail()
-	}
-	if lv := ParseLevel("info"); lv != InfoLevel {
-		t.Fail()
-	}
-	if lv := ParseLevel("warn"); lv != WarnLevel {
-		t.Fail()
-	}
-	if lv := ParseLevel("error"); lv != ErrorLevel {
-		t.Fail()
-	}
-	if lv := ParseLevel("panic"); lv != PanicLevel {
-		t.Fail()
-	}
-	if lv := ParseLevel("fatal"); lv != FatalLevel {
-		t.Fail()
-	}
+func (t Ttf) callf1(num int) int {
+	fmt.Println("Ttf callf1", num)
+	return num + 1
+}
+func (t Ttf) callf2(num int) int {
+	fmt.Println("Ttf callf2", num)
+	return num + 1
+}
 
-	Debugf("this is a debug %d", 1)
-	SetLevel(InfoLevel)
-	Debugf("SHOULD NOT SEE THIS!")
-	Infof("this is an info %d", 2)
-	Warnf("this is a warning %d", 3)
-	TraceError("this is a trace error %d", 4)
-	func() {
-		defer func() {
-			_ = recover()
-		}()
-		Panicf("this is a panic %d", 4)
-	}()
+func test_interface() {
+	ins := new(Ttf)
+	ins.callf1(100)
+	ins.callf2(200)
 
-	func() {
-		defer func() {
-			_ = recover()
-		}()
-		//Fatalf("this is a fatal %d", 5)
-	}()
+	var iii Intf
+	iii = ins
+	iii.callf1(300)
+	iii.callf2(400)
 }
 
 func main() {
-	logf2()
+	//log_zap()
+	test_interface()
 	for {
 		time.Sleep(2 * time.Second)
 	}

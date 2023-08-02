@@ -1,7 +1,6 @@
 package core
 
 import (
-	"gnet/lib/log"
 	"gnet/lib/vector"
 	"sync"
 )
@@ -39,7 +38,7 @@ func init() {
 	validNodeIdVec = vector.New()
 }
 
-//InitNode set node's information.
+// InitNode set node's information.
 func InitNode(_isStandalone, _isMaster bool) {
 	isStandalone = _isStandalone
 	isMaster = _isMaster
@@ -48,7 +47,7 @@ func InitNode(_isStandalone, _isMaster bool) {
 	}
 }
 
-//RegisterNode : register slave node to master, and get a node id
+// RegisterNode : register slave node to master, and get a node id
 // block until register success
 func RegisterNode(nodeName string) {
 	once.Do(func() {
@@ -56,24 +55,24 @@ func RegisterNode(nodeName string) {
 			route(Cmd_RegisterNode, nodeName)
 			h.nodeId = <-registerNodeChan
 			worker, _ = NewIdWorker(int64(h.nodeId))
-			log.Info("SlaveNode register ndoe success: nodeId: %v, nodeName: {%v}", h.nodeId, nodeName)
+			logsimple.Info("SlaveNode register ndoe success: nodeId: %v, nodeName: {%v}", h.nodeId, nodeName)
 		}
 	})
 }
 
-//DispatchRegisterNodeRet send RegisterNode's return to channel which RegisterNode is wait for
+// DispatchRegisterNodeRet send RegisterNode's return to channel which RegisterNode is wait for
 func DispatchRegisterNodeRet(id uint64) {
 	registerNodeChan <- id
 }
 
-//globalName regist name to master
-//it will notify all exist service through distribute msg.
+// globalName regist name to master
+// it will notify all exist service through distribute msg.
 func globalName(id ServiceID, name string) {
 	route(Cmd_RegisterName, uint64(id), name)
 }
 
-//route send msg to master
-//if node is not a master node, it send to .slave node first, .slave will forward msg to master.
+// route send msg to master
+// if node is not a master node, it send to .slave node first, .slave will forward msg to master.
 func route(cmd CmdType, data ...interface{}) bool {
 	router, err := findServiceByName(".router")
 	if err != nil {
@@ -83,8 +82,8 @@ func route(cmd CmdType, data ...interface{}) bool {
 	return true
 }
 
-//NameToId couldn't guarantee get the correct id for name.
-//it will return err if the named server is until now.
+// NameToId couldn't guarantee get the correct id for name.
+// it will return err if the named server is until now.
 func NameToId(name string) (ServiceID, error) {
 	ser, err := findServiceByName(name)
 	if err == nil {
@@ -133,7 +132,7 @@ func GenerateNodeId() uint64 {
 
 func CollectNodeId(recycledNodeID uint64) {
 	if recycledNodeID >= StartingNodeID {
-		log.Info("Recycled of NodeID<%v>", recycledNodeID)
+		logsimple.Info("Recycled of NodeID<%v>", recycledNodeID)
 		validNodeIdVec.Push(recycledNodeID)
 	}
 }

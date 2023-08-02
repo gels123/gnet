@@ -14,17 +14,19 @@ type Game struct {
 }
 
 /*
-func (g *Game) OnRequestMSG(src core.ServiceID, rid uint64, data ...interface{}) {
-	g.Respond(src, rid, "world")
-}
-func (g *Game) OnCallMSG(src core.ServiceID, cid uint64, data ...interface{}) {
-	g.Ret(src, cid, "world")
-}
+	func (g *Game) OnRequestMSG(src core.ServiceID, rid uint64, data ...interface{}) {
+		g.Respond(src, rid, "world")
+	}
 
-func (g *Game) OnNormalMSG(src core.ServiceID, data ...interface{}) {
-	log.Info("%v, %v", src, data)
-	//g.RawSend(src, core.MSG_TYPE_NORMAL, "222")
-}*/
+	func (g *Game) OnCallMSG(src core.ServiceID, cid uint64, data ...interface{}) {
+		g.Ret(src, cid, "world")
+	}
+
+	func (g *Game) OnNormalMSG(src core.ServiceID, data ...interface{}) {
+		loggerbak.Info("%v, %v", src, data)
+		//g.RawSend(src, core.MSG_TYPE_NORMAL, "222")
+	}
+*/
 func (g *Game) OnDistributeMSG(msg *core.Message) {
 	log.Info("%v", msg)
 }

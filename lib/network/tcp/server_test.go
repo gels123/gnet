@@ -3,7 +3,7 @@ package tcp_test
 import (
 	"gnet/lib/core"
 	"gnet/lib/encoding/binary"
-	"gnet/lib/log"
+	"gnet/lib/loggerbak"
 	"gnet/lib/network/tcp"
 	"testing"
 )
@@ -16,7 +16,7 @@ type M struct {
 func (m *M) OnNormalMSG(msg *core.Message) {
 	cmd := msg.Cmd
 	if cmd == tcp.AGENT_CLOSED {
-		log.Info("agent closed")
+		logsimple.Info("agent closed")
 	}
 }
 
@@ -29,14 +29,14 @@ func (m *M) OnSocketMSG(msg *core.Message) {
 		m.decoder.SetBuffer(data)
 		var msg []byte = []byte{}
 		m.decoder.Decode(&msg)
-		log.Info("%v, %v", src, string(msg))
+		logsimple.Info("%v, %v", src, string(msg))
 
 		m.RawSend(src, core.MSG_TYPE_NORMAL, tcp.AGENT_CMD_SEND, data)
 	}
 }
 
 func TestServer(t *testing.T) {
-	log.Init("./log", "tcpserver", log.FATAL_LEVEL, log.DEBUG_LEVEL, 10000, 1000)
+	logsimple.Init("./log", "tcpserver", logsimple.FATAL_LEVEL, logsimple.DEBUG_LEVEL, 10000, 1000)
 	m := &M{Skeleton: core.NewSkeleton(0)}
 	m.decoder = binary.NewDecoder()
 	core.StartService(&core.ModuleParam{

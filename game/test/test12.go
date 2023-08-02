@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"gnet/lib/helper"
-	"gnet/lib/log"
+	"gnet/lib/loggerbak"
 	"io/ioutil"
 	"runtime/debug"
 	"strconv"
@@ -14,7 +14,7 @@ import (
 	"gnet/lib/uuid"
 )
 
-//获取指定目录下的所有文件,包含子目录下的文件
+// 获取指定目录下的所有文件,包含子目录下的文件
 func GetAllFiles(dirPth string) {
 	dir, err := ioutil.ReadDir(dirPth)
 	if err != nil {
@@ -48,12 +48,12 @@ func main() {
 	fmt.Println("=========sdfadf2==", helper.GetStack())
 	fmt.Println("uuid1=", uuid.GenUUID(), "uuid2=", uuid.GenUUID(), uuid.GenFixedUUID([]byte("1")), uuid.GenFixedUUID([]byte("1")))
 
-	log.Init("test", "game", log.DEBUG_LEVEL, log.DEBUG_LEVEL, 10000, 1000)
+	logsimple.Init("test", "game", logsimple.DEBUG_LEVEL, logsimple.DEBUG_LEVEL, 10000, 1000)
 	s := &Student2{"yyyyy", 100}
-	log.Error("hahaha %v, %v", 2, s)
+	logsimple.Error("hahaha %v, %v", 2, s)
 
 	for {
-		log.Warn("loop log warn %v", 100)
+		logsimple.Warn("loop log warn %v", 100)
 		time.Sleep(2 * time.Second)
 	}
 }

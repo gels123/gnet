@@ -2,22 +2,50 @@ package main
 
 import (
 	"fmt"
-	"gnet/game/conf"
-	"gnet/lib/log"
+	"gnet/lib/logzap"
+	"gnet/lib/utils"
+	"path/filepath"
+	"regexp"
 	"time"
 )
 
 func init() {
-	fmt.Println("==== game main init begin ====")
-	log.Init(conf.LogsConf.FileName, conf.LogsConf.FileName, conf.LogsConf.FileLevel, conf.LogsConf.ShellLevel, conf.LogsConf.MaxLine, conf.LogsConf.BufSize)
-	fmt.Println("==== game main init end ====")
+}
+
+var patternConversionRegexps = []*regexp.Regexp{
+	regexp.MustCompile(`%[%+A-Za-z]`),
+	regexp.MustCompile(`\*+`),
 }
 
 func main() {
-	log.Info("==game main start==")
-	log.Info("==game main start==")
+
+	fmt.Println(utils.GetExeDir())
+	fmt.Println(utils.GetCurDir())
+
+	//logOut := filepath.Join(utils.GetCurDir(), conf.LogsConf.FilePath, conf.LogsConf.FileName)
+	//fmt.Println("===================df===", logOut)
+	//fmt.Println("===================xxx===", conf.LogsConf.FilePath[0] == '.')
+
+	////logzap.Infof("Failed to fetch URL: %s", "xxxx1")
+	////logzap.Errorf("Failed to fetch URL: %s", "xxxx2")
+	//
+	//time.AfterFunc(time.Second*10, func() {
+	//	fmt.Println("==============sdfadfadfa===============")
+	//})
+
+	fileName := "gamelog" + ".%Y%m%d"
+	globPattern := fileName
+	for _, re := range patternConversionRegexps {
+		globPattern = re.ReplaceAllString(globPattern, "*")
+	}
+
+	fullFileName := "D:/work/gnet/log/" + globPattern
+	matches, err := filepath.Glob(fullFileName)
+	fmt.Println("sdfa=====", matches, err)
 
 	for {
-		time.Sleep(10000000)
+		logzap.Debugw("========sdfadf===", "a=", 100)
+		logzap.Debugf("========sdfadf===", "a=", 100)
+		time.Sleep(time.Second)
 	}
 }

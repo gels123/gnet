@@ -4,7 +4,7 @@ import (
 	"gnet/lib/conf"
 	"gnet/lib/core"
 	"gnet/lib/encoding/gob"
-	"gnet/lib/log"
+	"gnet/lib/loggerbak"
 	"gnet/lib/network/tcp"
 )
 
@@ -64,14 +64,14 @@ func (m *master) OnNormalMSG(msg *core.Message) {
 		ips := data[0].([]string)
 		m.tcpServer.SetAcceptWhiteIPList(ips)
 	default:
-		log.Info("Unknown command for master: %v", cmd)
+		logsimple.Info("Unknown command for master: %v", cmd)
 	}
 }
 
 func (m *master) onRegisterNode(src core.ServiceID, nodeName string) {
 	//generate node id
 	nodeId := core.GenerateNodeId()
-	log.Info("register node: nodeId: %v, nodeName: %v", nodeId, nodeName)
+	logsimple.Info("register node: nodeId: %v, nodeName: %v", nodeId, nodeName)
 	m.nodesMap[nodeId] = Node{
 		Agent: src,
 		Name:  nodeName,
@@ -157,7 +157,7 @@ func (m *master) OnSocketMSG(msg *core.Message) {
 		for name, id := range m.globalNameMap {
 			nid := core.ParseNodeId(id)
 			if nid == nodeId {
-				log.Warn("service is delete: name: %v id: %v", name, id)
+				logsimple.Warn("service is delete: name: %v id: %v", name, id)
 				deletedNames = append(deletedNames, core.NodeInfo{name, id})
 				delete(m.globalNameMap, name)
 			}
@@ -216,7 +216,7 @@ func (m *master) forwardM(msg *core.Message, data []byte) {
 	}
 	node, ok := m.nodesMap[nodeId]
 	if !ok {
-		log.Debug("node:%v is disconnected.", nodeId)
+		logsimple.Debug("node:%v is disconnected.", nodeId)
 		return
 	}
 	//if has no encode data, encode it first.

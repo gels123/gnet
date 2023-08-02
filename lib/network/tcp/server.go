@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"gnet/lib/core"
-	"gnet/lib/log"
+	"gnet/lib/loggerbak"
 )
 
 type Server struct {
@@ -48,12 +48,12 @@ func (self *Server) Listen() error {
 	address := net.JoinHostPort(self.Host, self.Port)
 	tcpAddress, err := net.ResolveTCPAddr("tcp", address)
 	if err != nil {
-		log.Error("tcp server: resolve tcp address failed, %s", err)
+		logsimple.Error("tcp server: resolve tcp address failed, %s", err)
 		return err
 	}
 	self.listener, err = net.ListenTCP("tcp", tcpAddress)
 	if err != nil {
-		log.Error("tcp server: listen tcp failed %s", err)
+		logsimple.Error("tcp server: listen tcp failed %s", err)
 		return err
 	}
 
@@ -71,11 +71,11 @@ func (self *Server) Listen() error {
 					if max := 1 * time.Second; tempDelay > max {
 						tempDelay = max
 					}
-					log.Warn("tcp server: accept error: %v; retrying in %v", err, tempDelay)
+					logsimple.Warn("tcp server: accept error: %v; retrying in %v", err, tempDelay)
 					time.Sleep(tempDelay)
 					continue
 				}
-				log.Error("tcp server: accept err %s, server closed.", err)
+				logsimple.Error("tcp server: accept err %s, server closed.", err)
 				core.Send(self.hostService, core.MSG_TYPE_NORMAL, core.MSG_ENC_TYPE_NO, TCPServerClosed)
 				break
 			}
@@ -83,7 +83,7 @@ func (self *Server) Listen() error {
 				remoteAddr := tcpCon.RemoteAddr()
 				tcpAddr, e := net.ResolveTCPAddr("tcp", remoteAddr.String())
 				if e != nil {
-					log.Error("tcp server: receive remote address error. %v ", e)
+					logsimple.Error("tcp server: receive remote address error. %v ", e)
 					continue
 				}
 				ip := tcpAddr.IP
@@ -95,7 +95,7 @@ func (self *Server) Listen() error {
 					}
 				}
 				if !isAllowAccept {
-					log.Error("tcp server: receive a remote connect with ip: [ %v ] which is not in white ip list. [ %v ], so close it.", ip, self.AcceptWhiteIpList)
+					logsimple.Error("tcp server: receive a remote connect with ip: [ %v ] which is not in white ip list. [ %v ], so close it.", ip, self.AcceptWhiteIpList)
 					tcpCon.Close()
 					continue
 				}

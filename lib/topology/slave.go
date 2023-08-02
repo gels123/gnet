@@ -3,7 +3,7 @@ package topology
 import (
 	"gnet/lib/core"
 	"gnet/lib/encoding/gob"
-	"gnet/lib/log"
+	"gnet/lib/loggerbak"
 	"gnet/lib/network/tcp"
 )
 
@@ -62,7 +62,7 @@ func (s *slave) OnSocketMSG(msg *core.Message) {
 			msg := array[0].(*core.Message)
 			s.forwardM(msg)
 		case core.Cmd_Exit:
-			log.Info("receive exit command, node will exit now.")
+			logsimple.Info("receive exit command, node will exit now.")
 			core.SendCloseToAll()
 		}
 	}
@@ -74,7 +74,7 @@ func (s *slave) forwardM(msg *core.Message) {
 		core.ForwardLocal(msg)
 		return
 	}
-	log.Warn("recv msg not forward to this node.")
+	logsimple.Warn("recv msg not forward to this node.")
 }
 
 func (s *slave) OnDestroy() {

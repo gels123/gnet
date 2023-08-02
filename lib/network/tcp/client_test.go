@@ -3,7 +3,7 @@ package tcp_test
 import (
 	"gnet/lib/core"
 	"gnet/lib/encoding/binary"
-	"gnet/lib/log"
+	"gnet/lib/loggerbak"
 	"gnet/lib/network/tcp"
 	"testing"
 	"time"
@@ -30,7 +30,7 @@ func (c *C) OnMainLoop(dt int) {
 func (c *C) OnNormalMSG(msg *core.Message) {
 	data := msg.Data
 	if len(data) >= 2 {
-		log.Info("recv data :%s", string(data[0].([]byte)))
+		logsimple.Info("recv data :%s", string(data[0].([]byte)))
 	}
 }
 
@@ -42,12 +42,12 @@ func (c *C) OnSocketMSG(msg *core.Message) {
 		c.decoder.SetBuffer(data)
 		var msg []byte = []byte{}
 		c.decoder.Decode(&msg)
-		log.Info(string(msg))
+		logsimple.Info(string(msg))
 	}
 }
 
 func TestClient(t *testing.T) {
-	log.Init("./log", "tcpclient", log.FATAL_LEVEL, log.DEBUG_LEVEL, 10000, 1000)
+	logsimple.Init("./log", "tcpclient", logsimple.FATAL_LEVEL, logsimple.DEBUG_LEVEL, 10000, 1000)
 
 	for i := 0; i < 1; i++ {
 		c := &C{Skeleton: core.NewSkeleton(10)}

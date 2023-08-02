@@ -23,7 +23,7 @@ func NewTimerSchedule() *TimerSchedule {
 	return ts
 }
 
-//Start the TimerSchedule
+// Start the TimerSchedule
 func (ts *TimerSchedule) Start() {
 	if ts.bStart {
 	} else {
@@ -38,7 +38,7 @@ func (ts *TimerSchedule) Start() {
 	}
 }
 
-//Stop the TimerSchedule
+// Stop the TimerSchedule
 func (ts *TimerSchedule) Stop() bool {
 	if ts.bStart {
 		return false
@@ -54,7 +54,7 @@ func (ts *TimerSchedule) Stop() bool {
 	return true
 }
 
-//Update update all timers
+// Update update all timers
 func (ts *TimerSchedule) Update(dt int) {
 	ts.mutex.Lock()
 	ts.timers.AppendVec(ts.addedCache)
@@ -81,10 +81,10 @@ func (ts *TimerSchedule) Update(dt int) {
 	ts.mutex.Unlock()
 }
 
-//Schedule start a timer with interval(100=1s) and repeat.
-//callback will be triggerd each interval, and timer will delete after trigger repeat times
-//if interval is small than schedule's interval
-//it may trigger multitimes at a update.
+// Schedule start a timer with interval(100=1s) and repeat.
+// callback will be triggerd each interval, and timer will delete after trigger repeat times
+// if interval is small than schedule's interval
+// it may trigger multitimes at a update.
 func (ts *TimerSchedule) Schedule(interval, repeat int, cb TimerCallback) *Timer {
 	t := NewTimer(interval, repeat, cb)
 	ts.mutex.Lock()

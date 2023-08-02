@@ -3,24 +3,24 @@ package conf
 import (
 	"encoding/json"
 	"fmt"
-	"gnet/lib/log"
+	"gnet/lib/loggerbak"
 	"io/ioutil"
 	"os"
 	"path"
 	"reflect"
 )
 
-//日志配置
+// 日志配置
 var (
-	LogFilePath   string = "./log"         //log's file path
-	LogFileName   string = "game"          //log's file name
-	LogFileLevel  int    = log.LEVEL_MAX   //log's file level
-	LogShellLevel int    = log.DEBUG_LEVEL //log's shell level
-	LogMaxLine    int    = 10000           //log's max line per file
-	LogBufferSize int    = 2000            //log's max buffer size
+	LogFilePath   string = "./log"               //log's file path
+	LogFileName   string = "game"                //log's file name
+	LogFileLevel  int    = logsimple.LEVEL_MAX   //log's file level
+	LogShellLevel int    = logsimple.DEBUG_LEVEL //log's shell level
+	LogMaxLine    int    = 10000                 //log's max line per file
+	LogBufferSize int    = 2000                  //log's max buffer size
 )
 
-//服务内置配置
+// 服务内置配置
 var (
 	CoreIsStandalone bool     = false       //set system is a standalone or multinode
 	CoreIsMaster     bool     = true        //set node is master
@@ -45,7 +45,7 @@ func PrintCurrentConfSetToStd() {
 	fmt.Printf("CallTimeOut = %v\n", CallTimeOut)
 }
 
-//~
+// ~
 func assignTo(r map[string]interface{}, target interface{}, name string) {
 	if t := reflect.TypeOf(target); t.Kind() != reflect.Ptr {
 		fmt.Println("Kind is", t.Kind())
@@ -80,8 +80,8 @@ const (
 	privateConfiguraPath = ".private/svrconf.json"
 )
 
-//~ If you wish to alter the configuration filepath
-//~ Overwrite the configures by configuration file.
+// ~ If you wish to alter the configuration filepath
+// ~ Overwrite the configures by configuration file.
 func init() {
 	goPath := os.ExpandEnv("$GOPATH")
 	if len(goPath) <= 0 {

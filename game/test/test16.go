@@ -3,7 +3,7 @@ package main
 import (
 	"gnet/game/conf"
 	"gnet/lib/core"
-	"gnet/lib/log"
+	"gnet/lib/loggerbak"
 	"time"
 )
 
@@ -38,8 +38,8 @@ type Game struct {
 //}
 
 func main() {
-	log.Init(conf.LogFilePath, conf.LogFileName, conf.LogFileLevel, conf.LogShellLevel, conf.LogMaxLine, conf.LogBufferSize)
-	log.Info("===== test16 main =====")
+	logsimple.Init(conf.LogFilePath, conf.LogFileName, conf.LogFileLevel, conf.LogShellLevel, conf.LogMaxLine, conf.LogBufferSize)
+	logsimple.Info("===== test16 main =====")
 	//id1 := core.StartService(&core.ModuleParam{
 	//	N: "g1",
 	//	M: &Game{Skeleton: core.NewSkeleton(0)},

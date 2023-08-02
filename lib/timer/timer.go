@@ -3,7 +3,7 @@ package timer
 import (
 	"errors"
 	"gnet/lib/helper"
-	"gnet/lib/log"
+	"gnet/lib/loggerbak"
 )
 
 var (
@@ -62,13 +62,13 @@ func (t *Timer) update(dt int) {
 func (t *Timer) trigger() {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Error("Timer:trigger stack: %v\n, %v", helper.GetStack(), err)
+			logsimple.Error("Timer:trigger stack: %v\n, %v", helper.GetStack(), err)
 		}
 	}()
 	t.cb(t.interval)
 }
 
-//Reset reset timer's time elapsed and repeated times.
+// Reset reset timer's time elapsed and repeated times.
 func (t *Timer) Reset() error {
 	if t.isComplete {
 		return TimerIsComplete

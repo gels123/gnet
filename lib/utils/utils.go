@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"gnet/lib/helper"
-	"gnet/lib/log"
 	"time"
 )
 
@@ -11,7 +9,7 @@ func CatchPanic(f func()) (err interface{}) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			log.Error("%v panic, stack: %v\n, %v", f, helper.GetStack(), err)
+			//logzap.Errorf("%v panic, stack: %v\n, %v", f, helper.GetStack(), err)
 		}
 	}()
 	f()
@@ -24,7 +22,7 @@ func RunPanicless(f func()) (panicless bool) {
 		err := recover()
 		panicless = (err == nil)
 		if err != nil {
-			log.Error("%v panic, stack: %v\n, %v", f, helper.GetStack(), err)
+			//logzap.Errorf("%v panic, stack: %v\n, %v", f, helper.GetStack(), err)
 		}
 	}()
 	f()
@@ -43,12 +41,12 @@ func NextLargerKey(key string) string {
 	return key + "\x00" // the next string that is larger than key, but smaller than any other keys > key
 }
 
-//获取当前时间戳
+// 获取当前时间戳
 func GetTime() int64 {
 	return time.Now().Unix()
 }
 
-//获取传入(当前)时间的0点的时间戳
+// 获取传入(当前)时间的0点的时间戳
 func GetTimeH0(timestamp ...int64) int64 {
 	if len(timestamp) <= 0 {
 		ti := time.Now().Unix()
@@ -58,7 +56,7 @@ func GetTimeH0(timestamp ...int64) int64 {
 	}
 }
 
-//获取传入(当前)时间的周一0点的时间戳
+// 获取传入(当前)时间的周一0点的时间戳
 func GetTimeW1H0(timestamp ...int64) int64 {
 	if len(timestamp) <= 0 {
 		ti := time.Now().Unix()
@@ -68,7 +66,7 @@ func GetTimeW1H0(timestamp ...int64) int64 {
 	}
 }
 
-//获取传入(当前)时间是周几
+// 获取传入(当前)时间是周几
 func GetTimeWeekDay(timestamp ...int64) int {
 	var weekday int
 	if len(timestamp) > 0 {
@@ -82,11 +80,11 @@ func GetTimeWeekDay(timestamp ...int64) int {
 	return weekday
 }
 
-//获取当前时间的格式化字符串
+// 获取当前时间的格式化字符串
 func GetTimeFormat(layout ...string) string {
 	if len(layout) > 0 {
 		return time.Now().Format(layout[0])
 	} else {
-		return time.Now().Format("2006-01-02 15:04:05")
+		return time.Now().Format("2000-01-02 15:04:05")
 	}
 }

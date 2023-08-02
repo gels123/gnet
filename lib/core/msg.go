@@ -8,8 +8,8 @@ type MsgType string
 type EncType string
 type CmdType string
 
-//Message is the based struct of msg through all service
-//by convention, the first value of Data is a string as the method name
+// Message is the based struct of msg through all service
+// by convention, the first value of Data is a string as the method name
 type Message struct {
 	Src     ServiceID
 	Dst     ServiceID
@@ -66,7 +66,7 @@ func lowLevelSend(src, dst ServiceID, msgType MsgType, encType EncType, id uint6
 	return nil
 }
 
-//send msg to dst by dst's service name
+// send msg to dst by dst's service name
 func sendName(src ServiceID, dst string, msgType MsgType, cmd CmdType, data ...interface{}) error {
 	dsts, err := findServiceByName(dst)
 	if err != nil {
@@ -75,7 +75,7 @@ func sendName(src ServiceID, dst string, msgType MsgType, cmd CmdType, data ...i
 	return lowLevelSend(src, dsts.getId(), msgType, MSG_ENC_TYPE_GO, 0, cmd, data...)
 }
 
-//ForwardLocal forward the message to the specified local sevice.
+// ForwardLocal forward the message to the specified local sevice.
 func ForwardLocal(m *Message) {
 	dsts, err := findServiceById(ServiceID(m.Dst))
 	if err != nil {
@@ -101,7 +101,7 @@ func ForwardLocal(m *Message) {
 	}
 }
 
-//DistributeMSG distribute the message to all local sevice
+// DistributeMSG distribute the message to all local sevice
 func DistributeMSG(src ServiceID, cmd CmdType, data ...interface{}) {
 	h.dicMutex.Lock()
 	defer h.dicMutex.Unlock()
@@ -112,7 +112,7 @@ func DistributeMSG(src ServiceID, cmd CmdType, data ...interface{}) {
 	}
 }
 
-//localSendWithoutMutex send a message to the local service with no mutex.
+// localSendWithoutMutex send a message to the local service with no mutex.
 func localSendWithoutMutex(src ServiceID, dstService *service, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) {
 	msg := NewMessage(src, dstService.getId(), msgType, encType, id, cmd, data...)
 	dstService.pushMSG(msg)
