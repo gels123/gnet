@@ -4,30 +4,30 @@ import "testing"
 
 func TestGWLog(t *testing.T) {
 	SetSource("gwlog_test")
-	SetOutput([]string{"stderr", "gwlog_test.log"})
-	SetLevel(DebugLevel)
+	//SetOutput([]string{"stderr", "gwlog_test.log"})
+	//SetLevel(debugLevel)
 
-	if lv := ParseLevel("debug"); lv != DebugLevel {
+	if lv := ParseLevel("debug"); lv != debugLevel {
 		t.Fail()
 	}
-	if lv := ParseLevel("info"); lv != InfoLevel {
+	if lv := ParseLevel("info"); lv != infoLevel {
 		t.Fail()
 	}
-	if lv := ParseLevel("warn"); lv != WarnLevel {
+	if lv := ParseLevel("warn"); lv != warnLevel {
 		t.Fail()
 	}
-	if lv := ParseLevel("error"); lv != ErrorLevel {
+	if lv := ParseLevel("error"); lv != errorLevel {
 		t.Fail()
 	}
-	if lv := ParseLevel("panic"); lv != PanicLevel {
+	if lv := ParseLevel("panic"); lv != panicLevel {
 		t.Fail()
 	}
-	if lv := ParseLevel("fatal"); lv != FatalLevel {
+	if lv := ParseLevel("fatal"); lv != fatalLevel {
 		t.Fail()
 	}
 
 	Debugf("this is a debug %d", 1)
-	SetLevel(InfoLevel)
+	//SetLevel(infoLevel)
 	Debugf("SHOULD NOT SEE THIS!")
 	Infof("this is an info %d", 2)
 	Warnf("this is a warning %d", 3)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gnet/lib/logzap"
 	"gnet/lib/utils"
+	"go.uber.org/zap"
 	"regexp"
 	"runtime/debug"
 	"time"
@@ -55,12 +56,12 @@ func main() {
 
 	//go aa()
 
-	fmt.Println("=====================00=", time.Now().UTC().Unix())
-	fmt.Println("=====================00=", time.Now().Unix())
-
+	logzap.SetSource("gelsxxx")
+	logzap.Infow("========sdfadf===", "a=", 100)
+	logzap.Error("========sdfadf===", zap.String("nnnn", "nihao"))
 	for {
-		logzap.Debugw("========sdfadf===", "a=", 100)
-		logzap.Debugf("========sdfadf===", "a=", 100)
+		//logzap.Debugw("=sdfadf=", "num=", 100)
+		//logzap.Debugf("========sdfadf===", "a=", 100)
 		time.Sleep(time.Second)
 	}
 }
