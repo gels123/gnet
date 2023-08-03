@@ -3,7 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
-	"gnet/lib/helper"
+	"gnet/lib/utils"
 	"reflect"
 )
 
@@ -38,7 +38,7 @@ func NewCallHelper(name string) *CallHelper {
 // AddFunc add callback with normal function
 func (c *CallHelper) AddFunc(cmd CmdType, fun interface{}) {
 	f := reflect.ValueOf(fun)
-	helper.PanicWhen(f.Kind() != reflect.Func, "fun must be a function type.")
+	utils.PanicWhen(f.Kind() != reflect.Func, "fun must be a function type.")
 	c.funcMap[cmd] = &callbackDesc{f, true}
 }
 
@@ -47,7 +47,7 @@ func (c *CallHelper) AddFunc(cmd CmdType, fun interface{}) {
 func (c *CallHelper) AddMethod(cmd CmdType, v interface{}, methodName string) {
 	self := reflect.ValueOf(v)
 	f := self.MethodByName(methodName)
-	helper.PanicWhen(f.Kind() != reflect.Func, fmt.Sprintf("[CallHelper:AddMethod] cmd{%v} method must be a function type.", cmd))
+	utils.PanicWhen(f.Kind() != reflect.Func, fmt.Sprintf("[CallHelper:AddMethod] cmd{%v} method must be a function type.", cmd))
 	c.funcMap[cmd] = &callbackDesc{f, true}
 }
 

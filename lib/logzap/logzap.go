@@ -35,11 +35,8 @@ var (
 	logger   *zap.Logger
 	sugar    *zap.SugaredLogger
 	source   string
-	filePath string        //文件路径
-	fileName string        //文件名称
-	maxSize  int64         //是否按大小分文件, 默认为是(大于0)
-	curLevel zapcore.Level //日志等级
-	display  bool          //终端是否打印
+	curLevel zapcore.Level // 日志等级
+	display  bool          // 终端是否打印
 )
 
 // 日志未按日期、大小分文件打印
@@ -102,27 +99,28 @@ var (
 //	buildLogger()
 //}
 
-// 日志按日期、大小分文件打印
+// 日志文件按日期、大小分文件滚动打印, 日志文件保留7天
 func init() {
-	filePath = conf.LogsConf.FilePath
-	if filePath[0] == '.' {
-		filePath = filepath.Join(utils.GetCurDir(), filePath) // '.'开头认为是相对路径
+	fileDir := conf.LogsConf.FileDir
+	if fileDir[0] == '.' {
+		fileDir = filepath.Join(utils.GetCurDir(), fileDir) // '.'开头认为是相对路径
 	}
-	if filePath != "" {
-		_, err := os.Stat(filePath)
-		if os.IsNotExist(err) {
-			err = os.MkdirAll(filePath, os.ModePerm)
-			if err != nil {
-				panic(errors.Wrap(err, `genFileName err`))
-			}
+	if fileDir != "" {
+		err := utils.CreateDir(fileDir)
+		if err != nil {
+			panic(errors.Wrap(err, `logzap init err`))
 		}
 	}
-	fileName = conf.LogsConf.FileName + ".%Y%m%d"
-
-	maxSize = conf.LogsConf.MaxSize
+	fileName := conf.LogsConf.FileName + ".%Y%m%d"
+	maxSize := conf.LogsConf.MaxSize
 	if maxSize <= 0 {
-		panic("logzap init err: invalid maxSize.")
+		panic(errors.New(`logzap init err maxSize`))
 	}
+	maxAge := conf.LogsConf.MaxAge
+	if maxAge <= 0 {
+		panic(errors.New(`logzap init err maxAge`))
+	}
+	rotateTime := time.Hour * 24
 	if conf.Debug {
 		curLevel = DebugLevel
 		display = true
@@ -190,7 +188,7 @@ func init() {
 		writers = append(writers, zapcore.AddSync(os.Stdout))
 	}
 	var divHook io.Writer
-	divHook = newDivWriter(filePath, fileName, maxSize)
+	divHook = newDivWriter(fileDir, fileName, maxSize, maxAge, rotateTime)
 	writers = append(writers, zapcore.AddSync(divHook))
 
 	core := zapcore.NewTee(

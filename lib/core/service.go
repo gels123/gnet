@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"gnet/lib/conf"
 	"gnet/lib/encoding/gob"
-	"gnet/lib/helper"
-	"gnet/lib/loggerbak"
+	"gnet/lib/logsimple"
 	"gnet/lib/timer"
+	"gnet/lib/utils"
 	"reflect"
 	"sync"
 	"time"
@@ -140,7 +140,7 @@ func (s *service) loopSelect() (ret bool) {
 	defer func() {
 		if err := recover(); err != nil {
 			logsimple.Error("error in service<%v>", s.getName())
-			logsimple.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
+			logsimple.Error("recover: stack: %v\n, %v", utils.GetStack(), err)
 		}
 	}()
 	select {
@@ -173,7 +173,7 @@ func (s *service) loopWithLoopSelect() (ret bool) {
 	defer func() {
 		if err := recover(); err != nil {
 			logsimple.Error("error in service<%v>", s.getName())
-			logsimple.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
+			logsimple.Error("recover: stack: %v\n, %v", utils.GetStack(), err)
 		}
 	}()
 	select {
@@ -225,7 +225,7 @@ func (s *service) request(dst ServiceID, encType EncType, timeout int, respondCb
 	cbp := requestCB{reflect.ValueOf(respondCb)}
 	s.requestMap[id] = cbp
 	s.requestMutex.Unlock()
-	helper.PanicWhen(cbp.respond.Kind() != reflect.Func, "respond cb must function.")
+	utils.PanicWhen(cbp.respond.Kind() != reflect.Func, "respond cb must function.")
 
 	lowLevelSend(s.getId(), dst, MSG_TYPE_REQUEST, encType, id, cmd, data...)
 
@@ -293,7 +293,7 @@ func (s *service) dispatchRespond(m *Message) {
 }
 
 func (s *service) call(dst ServiceID, encType EncType, cmd CmdType, data ...interface{}) ([]interface{}, error) {
-	helper.PanicWhen(dst == s.getId(), "dst must equal to s's id")
+	utils.PanicWhen(dst == s.getId(), "dst must equal to s's id")
 	s.callMutex.Lock()
 	id := s.callId
 	s.callId++
@@ -325,7 +325,7 @@ func (s *service) call(dst ServiceID, encType EncType, cmd CmdType, data ...inte
 }
 
 func (s *service) callWithTimeout(dst ServiceID, encType EncType, timeout int, cmd CmdType, data ...interface{}) ([]interface{}, error) {
-	helper.PanicWhen(dst == s.getId(), "dst must equal to s's id")
+	utils.PanicWhen(dst == s.getId(), "dst must equal to s's id")
 	s.callMutex.Lock()
 	id := s.callId
 	s.callId++
@@ -379,12 +379,12 @@ func (s *service) dispatchRet(cid uint64, data ...interface{}) {
 		select {
 		case ch <- data:
 		default:
-			helper.PanicWhen(true, "dispatchRet failed on ch.")
+			utils.PanicWhen(true, "dispatchRet failed on ch.")
 		}
 	}
 }
 
 func (s *service) schedule(interval, repeat int, cb timer.TimerCallback) *timer.Timer {
-	helper.PanicWhen(s.loopDuration <= 0, "loopDuraton must greater than zero.")
+	utils.PanicWhen(s.loopDuration <= 0, "loopDuraton must greater than zero.")
 	return s.ts.Schedule(interval, repeat, cb)
 }

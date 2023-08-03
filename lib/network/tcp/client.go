@@ -4,8 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"gnet/lib/core"
-	"gnet/lib/helper"
-	"gnet/lib/loggerbak"
+	"gnet/lib/utils"
 	"net"
 	"time"
 )
@@ -141,7 +140,7 @@ func (c *Client) OnNormalMSG(msg *core.Message) {
 func (c *Client) connect(n int) {
 	defer func() {
 		if err := recover(); err != nil {
-			logsimple.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
+			logsimple.Error("recover: stack: %v\n, %v", utils.GetStack(), err)
 		}
 	}()
 	i := 0
@@ -180,7 +179,7 @@ func (c *Client) connect(n int) {
 		go func() {
 			defer func() {
 				if err := recover(); err != nil {
-					logsimple.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
+					logsimple.Error("recover: stack: %v\n, %v", utils.GetStack(), err)
 				}
 			}()
 			for {

@@ -2,7 +2,7 @@ package core
 
 import (
 	"errors"
-	"gnet/lib/helper"
+	"gnet/lib/utils"
 	"gnet/lib/vector"
 	"sync"
 )
@@ -119,7 +119,7 @@ func findServiceById(id ServiceID) (s *service, err error) {
 
 // findServiceByName return a service by service name, it only return local service.
 func findServiceByName(name string) (s *service, err error) {
-	helper.PanicWhen(len(name) == 0, "name must not empty.")
+	utils.PanicWhen(len(name) == 0, "name must not empty.")
 	h.dicMutex.Lock()
 	defer h.dicMutex.Unlock()
 	for _, value := range h.dic {

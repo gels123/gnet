@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"gnet/lib/helper"
-	"gnet/lib/loggerbak"
 	"io/ioutil"
 	"runtime/debug"
 	"strconv"
@@ -45,7 +43,7 @@ func main() {
 	//GetAllFiles("./test")
 	fmt.Println("============", utils.GetTimeFormat(), utils.GetTimeW1H0())
 	fmt.Println("=========sdfadf==", string(debug.Stack()))
-	fmt.Println("=========sdfadf2==", helper.GetStack())
+	fmt.Println("=========sdfadf2==", utils.GetStack())
 	fmt.Println("uuid1=", uuid.GenUUID(), "uuid2=", uuid.GenUUID(), uuid.GenFixedUUID([]byte("1")), uuid.GenFixedUUID([]byte("1")))
 
 	logsimple.Init("test", "game", logsimple.DEBUG_LEVEL, logsimple.DEBUG_LEVEL, 10000, 1000)

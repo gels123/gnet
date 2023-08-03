@@ -3,7 +3,7 @@ package tcp
 import (
 	"bufio"
 	"gnet/lib/core"
-	"gnet/lib/helper"
+	"gnet/lib/utils"
 	"net"
 	"time"
 )
@@ -47,7 +47,7 @@ func (a *Agent) OnInit() {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				logsimple.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
+				logsimple.Error("recover: stack: %v\n, %v", utils.GetStack(), err)
 			}
 		}()
 		for {

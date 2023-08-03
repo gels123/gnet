@@ -3,7 +3,6 @@ package logzap
 import (
 	"fmt"
 	"gnet/lib/utils"
-	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -24,45 +23,48 @@ type divWriter struct {
 	curFileIdx   int                // 当前文件索引
 	pattern      *strftime.Strftime // 文件名称正则fileName
 	patternClean string             // 文件清理正则
-	maxSize      int64              // 最大文件大小
+	maxSize      int64              // 最大文件大小(B)
 	curSize      int64              // 当前文件大小
-	maxAge       time.Duration      // 文件过期时间
-	rotateTime   time.Duration      // 当前文件滚动时长
+	maxAge       time.Duration      // 文件过期时长
+	rotateTime   time.Duration      // 文件滚动时长
 	bNewFile     bool               // 文件是否滚动
 	out          *os.File           // 输出文件对象
-	clock        Clock              // 时钟
+	timer        *time.Timer        // 文件滚动计时器
 	mutex        sync.RWMutex       // 读写锁
 }
 
-// New creates a new divWriter object.
-func newDivWriter(filePath, fileName string, maxSize int64) *divWriter {
-	globPattern := fileName
-	for _, re := range patternConversionRegexps {
-		globPattern = re.ReplaceAllString(globPattern, "*")
-	}
+var patternConversionRegexps = []*regexp.Regexp{
+	regexp.MustCompile(`%[%+A-Za-z]`),
+	regexp.MustCompile(`\*+`),
+}
 
+// New creates a new divWriter object.
+func newDivWriter(fileDir, fileName string, maxSize int64, maxAge, rotateTime time.Duration) *divWriter {
 	pattern, err := strftime.New(fileName)
 	if err != nil {
 		panic(errors.Wrap(err, `newDivWriter err: invalid strftime pattern`))
 	}
-
-	return &divWriter{
-		fileDir:     filePath,
-		fileName:    fileName,
-		curFileName: "",
-		curFileIdx:  0,
-		pattern:     pattern,
-		bNewFile:    false,
-		maxSize:     maxSize,
-		curSize:     0,
-		out:         nil,
-
-		clock:        clockFunc(time.Now),
-		patternClean: globPattern,
-
-		maxAge:     time.Hour * 24 * 7,
-		rotateTime: time.Hour * 24,
+	patternClean := fileName
+	for _, re := range patternConversionRegexps {
+		patternClean = re.ReplaceAllString(patternClean, "*")
 	}
+	dw := &divWriter{
+		fileDir:      fileDir,
+		fileName:     fileName,
+		curFileName:  "",
+		curFileIdx:   0,
+		pattern:      pattern,
+		patternClean: patternClean,
+		maxSize:      maxSize,
+		curSize:      0,
+		maxAge:       maxAge,
+		rotateTime:   rotateTime,
+		bNewFile:     false,
+		out:          nil,
+		timer:        nil,
+	}
+	dw.rotateByTime()
+	return dw
 }
 
 // Write satisfies the io.Writer interface.
@@ -72,55 +74,40 @@ func (dw *divWriter) Write(p []byte) (n int, err error) {
 	defer dw.mutex.Unlock()
 
 	if dw.out == nil || dw.bNewFile {
-		out, err := dw.genFile(false, false)
+		out, err := dw.genFile()
 		if err != nil {
-			return 0, errors.Wrap(err, `genFile err`)
+			return 0, errors.Wrap(err, `Write err`)
+		}
+		if dw.out != nil {
+			dw.out.Close()
 		}
 		dw.out = out
+		dw.curSize = 0
+		dw.bNewFile = false
 	}
 	n, err = dw.out.Write(p)
 	dw.curSize += int64(n)
 	if dw.curSize >= dw.maxSize {
-
+		dw.bNewFile = true
 	}
 	return n, err
 }
 
 // must be locked during this operation
-func (dw *divWriter) genFile(bailOnRotateFail, useGenerationalNames bool) (io.Writer, error) {
+func (dw *divWriter) genFile() (*os.File, error) {
 	filename := dw.genFileName()
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
-		return nil, errors.Wrap(err, `os.OpenFile err`)
+		return nil, errors.Wrap(err, "genFile err")
 	}
-
-	if err := dw.cleanFile(filename); err != nil {
-		err = errors.Wrap(err, "failed to rotate")
-		if bailOnRotateFail {
-			// Failure to rotate is a problem, but it's really not a great
-			// idea to stop your application just because you couldn't rename
-			// your log.
-			//
-			// We only return this error when explicitly needed (as specified by bailOnRotateFail)
-			//
-			// However, we *NEED* to close `file` here
-			if file != nil { // probably can't happen, but being paranoid
-				file.Close()
-			}
-			return nil, err
-		}
+	if err := dw.cleanFile(); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 	}
-	if dw.out != nil {
-		dw.out.Close()
-	}
-	dw.out = file
-
 	return file, nil
 }
 
 func (dw *divWriter) genFileName() string {
-	now := dw.clock.Now()
+	now := time.Now().UTC()
 	now = now.Truncate(time.Duration(dw.rotateTime))
 	newFileName := dw.pattern.FormatString(now)
 	if dw.curFileName != newFileName {
@@ -128,20 +115,23 @@ func (dw *divWriter) genFileName() string {
 		dw.curFileIdx = 0
 	}
 	if dw.curFileIdx <= 0 {
-		tmp := filepath.Join(filePath, newFileName+".*")
+		tmp := filepath.Join(dw.fileDir, newFileName+".*")
 		matches, err := filepath.Glob(tmp)
 		if err != nil || len(matches) <= 0 {
 			dw.curFileIdx = 1
 		} else {
+			tmp = filepath.Join(dw.fileDir, newFileName)
 			for _, fname := range matches {
-				if !utils.IsDir(fname) {
-					ok := strings.HasPrefix(fname, newFileName) // 过滤指定格式
+				if utils.IsFile(fname) {
+					ok := strings.HasPrefix(fname, tmp) // fname begin with tmp
 					if ok {
 						n := strings.LastIndex(fname, ".")
-						fname = fname[n+1:]
-						idx, err := strconv.Atoi(fname)
-						if err == nil && (idx+1) > dw.curFileIdx {
-							dw.curFileIdx = idx + 1
+						if n >= 0 {
+							fname = fname[n+1:]
+							idx, err := strconv.Atoi(fname)
+							if err == nil && (idx+1) > dw.curFileIdx {
+								dw.curFileIdx = idx + 1
+							}
 						}
 					}
 				}
@@ -154,39 +144,17 @@ func (dw *divWriter) genFileName() string {
 		dw.curFileIdx++
 	}
 	newFileName = fmt.Sprintf("%s.%d", newFileName, dw.curFileIdx)
-	return filepath.Join(filePath, newFileName)
-}
-
-// return the current file name
-func (dw *divWriter) CurrentFileName() string {
-	dw.mutex.RLock()
-	defer dw.mutex.RUnlock()
-	return dw.curFileName
-}
-
-var patternConversionRegexps = []*regexp.Regexp{
-	regexp.MustCompile(`%[%+A-Za-z]`),
-	regexp.MustCompile(`\*+`),
-}
-
-// call for a force rotation
-func (dw *divWriter) Rotate() error {
-	dw.mutex.Lock()
-	defer dw.mutex.Unlock()
-
-	if _, err := dw.genFile(true, true); err != nil {
-		return err
-	}
-	return nil
+	return filepath.Join(dw.fileDir, newFileName)
 }
 
 // clean log files with modify time before maxAge
-func (dw *divWriter) cleanFile(filename string) error {
+func (dw *divWriter) cleanFile() error {
 	if dw.maxAge > 0 {
-		cutoff := dw.clock.Now().Add(-dw.maxAge)
-		matches, err := filepath.Glob(dw.patternClean)
+		cutoff := time.Now().UTC().Add(-dw.maxAge)
+		tmp := filepath.Join(dw.fileDir, dw.patternClean)
+		matches, err := filepath.Glob(tmp)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "cleanFile err")
 		}
 		var files []string
 		for _, fname := range matches {
@@ -194,7 +162,7 @@ func (dw *divWriter) cleanFile(filename string) error {
 			if err != nil {
 				continue
 			}
-			if fi.ModTime().After(cutoff) {
+			if fi.ModTime().UTC().After(cutoff) {
 				continue
 			}
 			files = append(files, fname)
@@ -208,8 +176,25 @@ func (dw *divWriter) cleanFile(filename string) error {
 			}()
 		}
 	}
-
 	return nil
+}
+
+// Rotate by time
+func (dw *divWriter) rotateByTime() {
+	t1 := time.Now().UTC().Truncate(time.Second)
+	t2 := t1.Truncate(time.Duration(dw.rotateTime))
+	t3 := t2.Add(dw.rotateTime).Sub(t1) // t2 + dw.rotateTime - t1
+	dw.timer = time.AfterFunc(t3, func() {
+		dw.Rotate()
+		dw.rotateByTime()
+	})
+}
+
+// Call for a rotation
+func (dw *divWriter) Rotate() {
+	dw.mutex.Lock()
+	defer dw.mutex.Unlock()
+	dw.bNewFile = true
 }
 
 // Close divWriter
@@ -220,6 +205,10 @@ func (dw *divWriter) Close() error {
 	if dw.out != nil {
 		dw.out.Close()
 		dw.out = nil
+	}
+	if dw.timer != nil {
+		dw.timer.Stop()
+		dw.timer = nil
 	}
 	return nil
 }

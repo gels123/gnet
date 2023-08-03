@@ -2,8 +2,7 @@ package core
 
 import (
 	"fmt"
-	"gnet/lib/helper"
-	"gnet/lib/loggerbak"
+	"gnet/lib/utils"
 	"reflect"
 )
 
@@ -141,7 +140,7 @@ func SafeGo(f func()) {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				logsimple.Error("recover: stack: %v\n, %v", helper.GetStack(), err)
+				logsimple.Error("recover: stack: %v\n, %v", utils.GetStack(), err)
 			}
 			return
 		}()

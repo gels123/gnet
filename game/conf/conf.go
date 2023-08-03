@@ -1,5 +1,7 @@
 package conf
 
+import "time"
+
 // redis配置定义
 type stRedisConf struct {
 	Host string
@@ -11,9 +13,10 @@ type stRedisConf struct {
 
 // 日志配置定义
 type stLogsConf struct {
-	FilePath string // 日志路径(绝对路径如"/data/", 相对路径如"./log")
-	FileName string // 日志名称
-	MaxSize  int64  // 最大文件大小(字节B)
+	FileDir  string        // 日志路径(绝对路径如"/data/", 相对路径如"./log")
+	FileName string        // 日志名称
+	MaxSize  int64         // 最大文件大小(B)
+	MaxAge   time.Duration // 文件过期时长
 }
 
 // 相关配置
@@ -32,8 +35,9 @@ var (
 	}
 	// 日志配置
 	LogsConf = stLogsConf{
-		FilePath: "./log",
+		FileDir:  "./log",
 		FileName: "gamelog",
 		MaxSize:  512000000,
+		MaxAge:   time.Hour * 24 * 7,
 	}
 )

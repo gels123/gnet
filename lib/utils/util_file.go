@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
 )
@@ -47,4 +48,24 @@ func IsDir(path string) bool {
 // 判断所给路径是否为文件
 func IsFile(path string) bool {
 	return !IsDir(path)
+}
+
+// 创建文件夹
+func CreateDir(path string) error {
+	s, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = os.MkdirAll(path, os.ModePerm)
+			if err != nil {
+				return errors.Wrap(err, "CreateDir err")
+			}
+		} else {
+			return errors.Wrap(err, "CreateDir err")
+		}
+	} else {
+		if !s.IsDir() {
+			return errors.New("CreateDir err")
+		}
+	}
+	return nil
 }

@@ -2,8 +2,7 @@ package timer
 
 import (
 	"errors"
-	"gnet/lib/helper"
-	"gnet/lib/loggerbak"
+	"gnet/lib/utils"
 )
 
 var (
@@ -62,7 +61,7 @@ func (t *Timer) update(dt int) {
 func (t *Timer) trigger() {
 	defer func() {
 		if err := recover(); err != nil {
-			logsimple.Error("Timer:trigger stack: %v\n, %v", helper.GetStack(), err)
+			logsimple.Error("Timer:trigger stack: %v\n, %v", utils.GetStack(), err)
 		}
 	}()
 	t.cb(t.interval)

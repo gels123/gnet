@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"gnet/lib/logzap"
 	"gnet/lib/utils"
-	"path/filepath"
 	"regexp"
+	"runtime/debug"
 	"time"
 )
 
@@ -17,14 +17,34 @@ var patternConversionRegexps = []*regexp.Regexp{
 	regexp.MustCompile(`\*+`),
 }
 
+func aa() {
+	bb()
+}
+
+func bb() {
+	cc()
+}
+
+func cc() {
+	gg()
+}
+
+func gg() {
+	fmt.Println("==========sdfasdfadsf===gg=", string(debug.Stack()))
+
+	t1 := time.Now()
+	t2 := t1.Add(time.Second * 5)
+	time.AfterFunc(t2.Sub(t1), gg)
+}
+
 func main() {
 
 	fmt.Println(utils.GetExeDir())
 	fmt.Println(utils.GetCurDir())
 
-	//logOut := filepath.Join(utils.GetCurDir(), conf.LogsConf.FilePath, conf.LogsConf.FileName)
+	//logOut := filepath.Join(utils.GetCurDir(), conf.LogsConf.FileDir, conf.LogsConf.FileName)
 	//fmt.Println("===================df===", logOut)
-	//fmt.Println("===================xxx===", conf.LogsConf.FilePath[0] == '.')
+	//fmt.Println("===================xxx===", conf.LogsConf.FileDir[0] == '.')
 
 	////logzap.Infof("Failed to fetch URL: %s", "xxxx1")
 	////logzap.Errorf("Failed to fetch URL: %s", "xxxx2")
@@ -33,15 +53,10 @@ func main() {
 	//	fmt.Println("==============sdfadfadfa===============")
 	//})
 
-	fileName := "gamelog" + ".%Y%m%d"
-	globPattern := fileName
-	for _, re := range patternConversionRegexps {
-		globPattern = re.ReplaceAllString(globPattern, "*")
-	}
+	//go aa()
 
-	fullFileName := "D:/work/gnet/log/" + globPattern
-	matches, err := filepath.Glob(fullFileName)
-	fmt.Println("sdfa=====", matches, err)
+	fmt.Println("=====================00=", time.Now().UTC().Unix())
+	fmt.Println("=====================00=", time.Now().Unix())
 
 	for {
 		logzap.Debugw("========sdfadf===", "a=", 100)
