@@ -102,20 +102,21 @@ var (
 //		}
 //		buildLogger()
 //	}
-func buildLogger() {
-	if newLogger, err := cfg.Build(); err == nil {
-		if logger != nil {
-			logger.Sync()
-		}
-		logger = newLogger
-		if source != "" {
-			logger = logger.With(zap.String("source", source))
-		}
-		sugar = logger.Sugar()
-	} else {
-		panic(err)
-	}
-}
+//
+//func buildLogger() {
+//	if newLogger, err := cfg.Build(); err == nil {
+//		if logger != nil {
+//			logger.Sync()
+//		}
+//		logger = newLogger
+//		if source != "" {
+//			logger = logger.With(zap.String("source", source))
+//		}
+//		sugar = logger.Sugar()
+//	} else {
+//		panic(err)
+//	}
+//}
 
 // 日志文件按日期、大小分文件滚动打印, 日志文件保留7天
 func init() {
