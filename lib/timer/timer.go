@@ -2,23 +2,19 @@ package timer
 
 import (
 	"errors"
-	"gnet/lib/utils"
-)
-
-var (
-	TimerIsComplete = errors.New("timer is complete")
+	"gnet/lib/logzap"
 )
 
 type TimerCallback func(int)
 
 type Timer struct {
-	cb         TimerCallback
-	interval   int //interval time of milloseconds per trigger
-	elapsed    int //time elapsed
-	repeat     int //repeat times, <= 0 forever
-	repeated   int //allready repeated times
-	isComplete bool
-	isForever  bool
+	cb        TimerCallback
+	interval  int //interval time of milloseconds per trigger
+	elapsed   int //time elapsed
+	repeat    int //repeat times, <= 0 forever
+	repeated  int //allready repeated times
+	completed bool
+	isForever bool
 }
 
 func NewTimer(interval, repeat int, cb TimerCallback) *Timer {
@@ -34,7 +30,7 @@ func NewTimer(interval, repeat int, cb TimerCallback) *Timer {
 }
 
 func (t *Timer) update(dt int) {
-	if t.isComplete {
+	if t.completed {
 		return
 	}
 
@@ -51,7 +47,7 @@ func (t *Timer) update(dt int) {
 
 		if !t.isForever {
 			if t.repeated >= t.repeat {
-				t.isComplete = true
+				t.completed = true
 				return
 			}
 		}
@@ -61,7 +57,7 @@ func (t *Timer) update(dt int) {
 func (t *Timer) trigger() {
 	defer func() {
 		if err := recover(); err != nil {
-			logsimple.Error("Timer:trigger stack: %v\n, %v", utils.GetStack(), err)
+			logzap.Errorw("timer trigger recover err")
 		}
 	}()
 	t.cb(t.interval)
@@ -69,8 +65,8 @@ func (t *Timer) trigger() {
 
 // Reset reset timer's time elapsed and repeated times.
 func (t *Timer) Reset() error {
-	if t.isComplete {
-		return TimerIsComplete
+	if t.completed {
+		return errors.New("timer Reset err: is completed")
 	}
 	t.elapsed = 0
 	t.repeated = 0
@@ -78,5 +74,5 @@ func (t *Timer) Reset() error {
 }
 
 func (t *Timer) cancel() {
-	t.isComplete = true
+	t.completed = true
 }

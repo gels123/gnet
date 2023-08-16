@@ -49,8 +49,8 @@ func (v *Vector) Copy(src *Vector) {
 	copy(v.s[:], src.s[:])
 }
 
-//Delete delete value at position i
-//if i is out of range, Delete will panic
+// Delete delete value at position i
+// if i is out of range, Delete will panic
 func (v *Vector) Delete(i int) {
 	copy(v.s[i:], v.s[i+1:])
 	v.s[len(v.s)-1] = nil
@@ -69,28 +69,28 @@ func (v *Vector) InsertVector(i int, d *Vector) {
 	v.InsertVariant(i, d.s...)
 }
 
-//At will panic while i is out of range
+// At will panic while i is out of range
 func (v *Vector) At(i int) interface{} {
 	return v.s[i]
 }
 
-//Extend extend j space at tail
+// Extend extend j space at tail
 func (v *Vector) Extend(j int) {
 	v.s = append(v.s, make([]interface{}, j)...)
 }
 
-//ExtendAt extend j space after position i.
+// ExtendAt extend j space after position i.
 func (v *Vector) ExtendAt(i, j int) {
 	v.s = append(v.s[:i], append(make([]interface{}, j), v.s[i:]...)...)
 }
 
-func (v *Vector) Pop() (r interface{}) {
+func (v *Vector) Get() (r interface{}) {
 	r = v.s[len(v.s)-1]
 	v.Delete(len(v.s) - 1)
 	return r
 }
 
-func (v *Vector) Push(d interface{}) {
+func (v *Vector) Put(d interface{}) {
 	v.Append(d)
 }
 
@@ -115,8 +115,8 @@ func (v *Vector) Front() (r interface{}) {
 	return r
 }
 
-//Back return last element in vector
-//it panics if vector is empty
+// Back return last element in vector
+// it panics if vector is empty
 func (v *Vector) Back() (r interface{}) {
 	r = v.s[len(v.s)-1]
 	return r

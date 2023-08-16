@@ -88,14 +88,14 @@ func (ts *TimerSchedule) Update(dt int) {
 func (ts *TimerSchedule) Schedule(interval, repeat int, cb TimerCallback) *Timer {
 	t := NewTimer(interval, repeat, cb)
 	ts.mutex.Lock()
-	ts.addedCache.Push(t)
+	ts.addedCache.Put(t)
 	ts.mutex.Unlock()
 	return t
 }
 
 func (ts *TimerSchedule) UnSchedule(t *Timer) {
 	ts.mutex.Lock()
-	ts.deleteCache.Push(t)
+	ts.deleteCache.Put(t)
 	ts.mutex.Unlock()
 	t.cancel()
 }

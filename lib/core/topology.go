@@ -125,7 +125,7 @@ func GenerateNodeId() uint64 {
 		ret = beginNodeId
 		beginNodeId++
 	} else {
-		ret = validNodeIdVec.Pop().(uint64)
+		ret = validNodeIdVec.Get().(uint64)
 	}
 	return ret
 }
@@ -133,6 +133,6 @@ func GenerateNodeId() uint64 {
 func CollectNodeId(recycledNodeID uint64) {
 	if recycledNodeID >= StartingNodeID {
 		logsimple.Info("Recycled of NodeID<%v>", recycledNodeID)
-		validNodeIdVec.Push(recycledNodeID)
+		validNodeIdVec.Put(recycledNodeID)
 	}
 }

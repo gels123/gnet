@@ -74,11 +74,11 @@ func TestDelete(t *testing.T) {
 	errorOnDeepEqual(v.s, []interface{}{4, 3, 6, 6, 2, 5}, "reverse", t)
 
 	v.PushFront(0)
-	v.Push(0)
+	v.Put(0)
 
 	errorOnDeepEqual(v.s, []interface{}{0, 4, 3, 6, 6, 2, 5, 0}, "push", t)
 
-	v.Pop()
+	v.Get()
 	v.PopFront()
 
 	errorOnDeepEqual(v.s, []interface{}{4, 3, 6, 6, 2, 5}, "reverse", t)

@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"gnet/lib/logzap"
 	"gnet/lib/utils"
-	"go.uber.org/zap"
 	"regexp"
 	"runtime/debug"
 	"time"
@@ -56,12 +54,21 @@ func main() {
 
 	//go aa()
 
-	logzap.SetSource("gelsxxx")
-	logzap.Infow("========sdfadf===", "a=", 100)
-	logzap.Error("========sdfadf===", zap.String("nnnn", "nihao"))
-	for {
-		//logzap.Debugw("=sdfadf=", "num=", 100)
-		//logzap.Debugf("========sdfadf===", "a=", 100)
-		time.Sleep(time.Second)
-	}
+	//logzap.SetSource("gelsxxx")
+	//logzap.Infow("========sdfadf===", "a=", 100)
+	//logzap.Error("========sdfadf===", zap.String("nnnn", "nihao"))
+	//for {
+	//	//logzap.Debugw("=sdfadf=", "num=", 100)
+	//	//logzap.Debugf("========sdfadf===", "a=", 100)
+	//	time.Sleep(time.Second)
+	//}
+
+	queue := freequeue2.New(4)
+	queue.Put(100)
+	queue.Put(200)
+	queue.Put(300)
+	queue.Get()
+	queue.Put(400)
+	queue.Put(500)
+	queue.Put(600)
 }

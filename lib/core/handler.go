@@ -83,7 +83,7 @@ func registerService(s *service) ServiceID {
 	h.curId++
 	baseServiceId = h.curId
 	//} else {
-	//	baseServiceId = h.baseServiceIdCache.Pop().(uint64)
+	//	baseServiceId = h.baseServiceIdCache.Get().(uint64)
 	//}
 	id := h.nodeId<<NODE_ID_OFF | baseServiceId
 	h.dic[id] = s
@@ -102,7 +102,7 @@ func unregisterService(s *service) {
 		return
 	}
 	delete(h.dic, id)
-	h.baseServiceIdCache.Push((ServiceID(id)).parseBaseId())
+	h.baseServiceIdCache.Put((ServiceID(id)).parseBaseId())
 	exitGroup.Done()
 }
 
