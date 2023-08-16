@@ -1,5 +1,5 @@
 /*
- * lock free queue
+ * lock free queue(性能佳于chan和lockfreequeue2)
  */
 package lockfreequeue
 
