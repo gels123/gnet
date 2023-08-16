@@ -1,6 +1,9 @@
 /*
-日志打印   eg. 语法糖模式=>logzap.Debugw("=sdfsdf=", "num=", 100) 原生模式(性能更佳)=>logzap.Debug("=sdfsdf=", zap.Bool("ok", true), zap.String("name", "lord1"))
-*/
+ * 日志打印(基于zap)
+ *  eg.
+ *		语法糖模式=>logzap.Debugw("=sdfsdf=", "num=", 100)
+ * 		原生模式(性能更佳)=>logzap.Debug("=sdfsdf=", zap.Bool("ok", true), zap.String("name", "lord1"))
+ */
 package logzap
 
 import (
@@ -37,9 +40,9 @@ var (
 	cfg      *zap.Config
 	logger   *zap.Logger
 	sugar    *zap.SugaredLogger
-	source   string
+	source   string        // 源
 	curLevel zapcore.Level // 日志等级
-	display  bool          // 终端是否打印
+	display  bool          // 是否打印到控制台
 )
 
 // 日志未按日期、大小分文件打印
@@ -118,7 +121,7 @@ var (
 //	}
 //}
 
-// 日志文件按日期、大小分文件滚动打印, 日志文件保留7天
+// 日志文件按日期、大小分文件滚动打印, 日志文件保留x天, Debug打印到文件+控制台, 非Debug仅打印到文件
 func init() {
 	fileDir := conf.LogsConf.FileDir
 	if fileDir[0] == '.' {
@@ -204,14 +207,16 @@ func init() {
 	}
 
 	var cores []zapcore.Core
+	// 打印到文件
 	var divHook io.Writer
 	divHook = newDivWriter(fileDir, fileName, maxSize, maxAge, rotateTime)
 	cores = append(cores, zapcore.NewCore(encoder, zapcore.AddSync(divHook), curLevel))
+	// 打印到控制台
 	if display {
-		encoderConfigc := cfg.EncoderConfig
-		encoderConfigc.EncodeLevel = zapcore.LowercaseColorLevelEncoder
-		encoderConfigc.EncodeTime = zapcore.ISO8601TimeEncoder
-		encoderc := zapcore.NewConsoleEncoder(encoderConfigc)
+		encoderConfig2 := cfg.EncoderConfig
+		encoderConfig2.EncodeLevel = zapcore.LowercaseColorLevelEncoder
+		encoderConfig2.EncodeTime = zapcore.ISO8601TimeEncoder
+		encoderc := zapcore.NewConsoleEncoder(encoderConfig2)
 		cores = append(cores, zapcore.NewCore(encoderc, zapcore.AddSync(os.Stdout), curLevel))
 	}
 	core := zapcore.NewTee(cores...)

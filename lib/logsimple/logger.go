@@ -1,3 +1,6 @@
+/*
+ *	日志打印(简单版)
+ */
 package logsimple
 
 import (
