@@ -1,6 +1,7 @@
 package timer
 
 import (
+	"gnet/lib/logzap"
 	"gnet/lib/vector"
 	"sync"
 	"time"
@@ -26,16 +27,17 @@ func NewTimerSchedule() *TimerSchedule {
 // Start the TimerSchedule
 func (ts *TimerSchedule) Start() {
 	if ts.bStart {
-	} else {
-		ts.bStart = true
-		ts.tick = time.NewTicker(time.Duration(100) * time.Millisecond) //millisecond = 毫秒 = 千分之一秒
-		go func() {
-			for {
-				<-ts.tick.C
-				ts.Update(10)
-			}
-		}()
+		logzap.Infow("TimerSchedule start repeat")
+		return
 	}
+	ts.bStart = true
+	ts.tick = time.NewTicker(time.Duration(100) * time.Millisecond) //millisecond = 毫秒 = 1/1000秒
+	go func() {
+		for {
+			<-ts.tick.C
+			ts.Update(10)
+		}
+	}()
 }
 
 // Stop the TimerSchedule
@@ -63,7 +65,7 @@ func (ts *TimerSchedule) Update(dt int) {
 	for i := 0; i < ts.timers.Len(); i++ {
 		t := ts.timers.At(i).(*Timer)
 		t.update(dt)
-		if t.isComplete {
+		if t.completed {
 			ts.UnSchedule(t)
 		}
 	}
@@ -83,8 +85,7 @@ func (ts *TimerSchedule) Update(dt int) {
 
 // Schedule start a timer with interval(100=1s) and repeat.
 // callback will be triggerd each interval, and timer will delete after trigger repeat times
-// if interval is small than schedule's interval
-// it may trigger multitimes at a update.
+// if interval is small than schedule's interval, it may trigger multitimes at a update.
 func (ts *TimerSchedule) Schedule(interval, repeat int, cb TimerCallback) *Timer {
 	t := NewTimer(interval, repeat, cb)
 	ts.mutex.Lock()

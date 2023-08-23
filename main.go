@@ -71,8 +71,6 @@ func main() {
 	queue.Put(500)
 	queue.Put(600)
 	cell, _, _ := queue.Get()
-	switch(cell.type) {
-
-	}
-	fmt.Println("-------", cell)
+	var isok bool = true
+	fmt.Println("-------", cell, !isok)
 }

@@ -9,23 +9,27 @@ type TimerCallback func(int)
 
 type Timer struct {
 	cb        TimerCallback
-	interval  int //interval time of milloseconds per trigger
-	elapsed   int //time elapsed
-	repeat    int //repeat times, <= 0 forever
-	repeated  int //allready repeated times
-	completed bool
-	isForever bool
+	interval  int  //interval time of milloseconds per trigger
+	elapsed   int  //time elapsed
+	repeat    int  //repeat times, <= 0 forever
+	repeated  int  //allready repeated times
+	completed bool //is timer completed
+	forever   bool //is timer forever
 }
 
 func NewTimer(interval, repeat int, cb TimerCallback) *Timer {
-	if interval <= 0 {
-		panic("NewTimer: interval is negative or zero.")
+	if interval < 0 {
+		interval = 0
+	}
+	if repeat < 0 {
+		repeat = 0
 	}
 	t := &Timer{}
 	t.interval = interval
 	t.cb = cb
 	t.repeat = repeat
-	t.isForever = (t.repeat <= 0)
+	t.forever = (t.repeat <= 0)
+
 	return t
 }
 
@@ -45,7 +49,7 @@ func (t *Timer) update(dt int) {
 
 		t.trigger()
 
-		if !t.isForever {
+		if !t.forever {
 			if t.repeated >= t.repeat {
 				t.completed = true
 				return
@@ -63,7 +67,7 @@ func (t *Timer) trigger() {
 	t.cb(t.interval)
 }
 
-// Reset reset timer's time elapsed and repeated times.
+// Reset timer's time elapsed and repeated times.
 func (t *Timer) Reset() error {
 	if t.completed {
 		return errors.New("timer Reset err: is completed")
@@ -73,6 +77,7 @@ func (t *Timer) Reset() error {
 	return nil
 }
 
+// Cancel timer
 func (t *Timer) cancel() {
 	t.completed = true
 }

@@ -7,7 +7,7 @@ import (
 )
 
 func TestTimer(t *testing.T) {
-	tick := time.NewTicker(time.Duration(100) * time.Millisecond) //millisecond = 毫秒, 千分之一秒
+	tick := time.NewTicker(time.Duration(100) * time.Millisecond) //millisecond = 毫秒, 1/1000秒
 
 	ts := NewTimerSchedule()
 
