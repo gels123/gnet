@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"gnet/lib/lockfreequeue"
 	"gnet/lib/utils"
 	"regexp"
 	"runtime/debug"
@@ -37,9 +38,8 @@ func gg() {
 }
 
 func main() {
-
-	fmt.Println(utils.GetExeDir())
-	fmt.Println(utils.GetCurDir())
+	fmt.Println("==11111=====" + utils.GetExeDir())
+	fmt.Println("==11111=====" + utils.GetCurDir())
 
 	//logOut := filepath.Join(utils.GetCurDir(), conf.LogsConf.FileDir, conf.LogsConf.FileName)
 	//fmt.Println("===================df===", logOut)
@@ -63,12 +63,16 @@ func main() {
 	//	time.Sleep(time.Second)
 	//}
 
-	queue := freequeue2.New(4)
+	queue := lockfreequeue.NewQueue(1024 * 1024)
 	queue.Put(100)
 	queue.Put(200)
 	queue.Put(300)
-	queue.Get()
 	queue.Put(400)
 	queue.Put(500)
 	queue.Put(600)
+	cell, _, _ := queue.Get()
+	switch(cell.type) {
+
+	}
+	fmt.Println("-------", cell)
 }
