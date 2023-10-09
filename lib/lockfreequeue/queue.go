@@ -1,5 +1,5 @@
 /*
- * lock free queue(性能佳于chan和lockfreequeue2)
+ * lock free queue(性能优于chan和lockfreequeue2)
  */
 package lockfreequeue
 
@@ -153,6 +153,7 @@ func (q *Queue) Puts(values []interface{}) (puts, quantity uint32) {
 			}
 		}
 	}
+
 	return putCnt, posCnt + putCnt
 }
 

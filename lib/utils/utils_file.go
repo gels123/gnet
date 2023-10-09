@@ -1,3 +1,6 @@
+/*
+ * 与文件相关的通用函数
+ */
 package utils
 
 import (

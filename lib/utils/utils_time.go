@@ -1,3 +1,6 @@
+/*
+ * 与时间相关的通用函数
+ */
 package utils
 
 import (

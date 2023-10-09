@@ -1,3 +1,6 @@
+/*
+ * 通用函数
+ */
 package utils
 
 import (
