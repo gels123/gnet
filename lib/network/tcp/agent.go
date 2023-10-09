@@ -23,10 +23,10 @@ import (
 */
 
 type Agent struct {
-	*core.Skeleton
+	*core.BaseService
 	Con                  *net.TCPConn
 	closeing             bool
-	hostService          core.ServiceID
+	hostService          core.sid
 	hasDataArrived       bool
 	leftTimeBeforArrived int
 	inbuffer             []byte
@@ -67,11 +67,11 @@ func (a *Agent) OnInit() {
 	}()
 }
 
-func NewAgent(con *net.TCPConn, hostID core.ServiceID) *Agent {
+func NewAgent(con *net.TCPConn, hostID core.sid) *Agent {
 	a := &Agent{
 		Con:         con,
 		hostService: hostID,
-		Skeleton:    core.NewSkeleton(5000),
+		BaseService: core.NewSkeleton(5000),
 	}
 	return a
 }

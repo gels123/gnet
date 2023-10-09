@@ -4,27 +4,26 @@ import (
 	"gnet/lib/conf"
 	"gnet/lib/core"
 	"gnet/lib/encoding/gob"
-	"gnet/lib/loggerbak"
 	"gnet/lib/network/tcp"
 )
 
 type Node struct {
-	Agent core.ServiceID
+	Agent core.sid
 	Name  string
 }
 
 type master struct {
-	*core.Skeleton
+	*core.BaseService
 	nodesMap      map[uint64]Node //nodeid : Node struct
-	globalNameMap map[string]core.ServiceID
+	globalNameMap map[string]core.sid
 	tcpServer     *tcp.Server
 	isNeedExit    bool
 }
 
 func StartMaster(ip, port string) {
-	m := &master{Skeleton: core.NewSkeleton(0)}
+	m := &master{BaseService: core.NewSkeleton(0)}
 	m.nodesMap = make(map[uint64]Node)
-	m.globalNameMap = make(map[string]core.ServiceID)
+	m.globalNameMap = make(map[string]core.sid)
 	core.StartService(&core.ModuleParam{
 		N: ".router",
 		M: m,
@@ -49,7 +48,7 @@ func (m *master) OnNormalMSG(msg *core.Message) {
 	case core.Cmd_RegisterName:
 		id := data[0].(uint64)
 		name := data[1].(string)
-		m.onRegisterName(core.ServiceID(id), name)
+		m.onRegisterName(core.sid(id), name)
 	case core.Cmd_GetIdByName:
 		name := data[0].(string)
 		rid := data[1].(uint)
@@ -68,7 +67,7 @@ func (m *master) OnNormalMSG(msg *core.Message) {
 	}
 }
 
-func (m *master) onRegisterNode(src core.ServiceID, nodeName string) {
+func (m *master) onRegisterNode(src core.sid, nodeName string) {
 	//generate node id
 	nodeId := core.GenerateNodeId()
 	logsimple.Info("register node: nodeId: %v, nodeName: %v", nodeId, nodeName)
@@ -81,12 +80,12 @@ func (m *master) onRegisterNode(src core.ServiceID, nodeName string) {
 	m.RawSend(src, core.MSG_TYPE_NORMAL, tcp.AGENT_CMD_SEND, sendData)
 }
 
-func (m *master) onRegisterName(serviceId core.ServiceID, serviceName string) {
+func (m *master) onRegisterName(serviceId core.sid, serviceName string) {
 	m.globalNameMap[serviceName] = serviceId
 	m.distributeM(core.Cmd_NameAdd, core.NodeInfo{serviceName, serviceId})
 }
 
-func (m *master) onGetIdByName(src core.ServiceID, name string, rId uint) {
+func (m *master) onGetIdByName(src core.sid, name string, rId uint) {
 	id, ok := m.globalNameMap[name]
 	msg := core.NewMessage(core.INVALID_SERVICE_ID, core.INVALID_SERVICE_ID, core.MSG_TYPE_NORMAL, core.MSG_ENC_TYPE_NO, 0, core.Cmd_GetIdByNameRet, id, ok, name, rId)
 	sendData := gob.Pack(msg)
@@ -117,7 +116,7 @@ func (m *master) OnSocketMSG(msg *core.Message) {
 		case core.Cmd_RegisterName:
 			serviceId := array[0].(uint64)
 			serviceName := array[1].(string)
-			m.onRegisterName(core.ServiceID(serviceId), serviceName)
+			m.onRegisterName(core.sid(serviceId), serviceName)
 		case core.Cmd_GetIdByName:
 			name := array[0].(string)
 			rId := array[1].(uint)
@@ -207,8 +206,8 @@ func (m *master) closeAll() {
 }
 
 func (m *master) forwardM(msg *core.Message, data []byte) {
-	nodeId := core.ParseNodeId(core.ServiceID(msg.Dst))
-	isLcoal := core.CheckIsLocalServiceId(core.ServiceID(msg.Dst))
+	nodeId := core.ParseNodeId(core.sid(msg.Dst))
+	isLcoal := core.CheckIsLocalServiceId(core.sid(msg.Dst))
 	//log.Debug("master forwardM is send to master: %v, nodeid: %d", isLcoal, nodeId)
 	if isLcoal {
 		core.ForwardLocal(msg)

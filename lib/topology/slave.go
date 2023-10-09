@@ -3,17 +3,16 @@ package topology
 import (
 	"gnet/lib/core"
 	"gnet/lib/encoding/gob"
-	"gnet/lib/loggerbak"
 	"gnet/lib/network/tcp"
 )
 
 type slave struct {
-	*core.Skeleton
-	client core.ServiceID
+	*core.BaseService
+	client core.sid
 }
 
 func StartSlave(ip, port string) {
-	m := &slave{Skeleton: core.NewSkeleton(0)}
+	m := &slave{BaseService: core.NewSkeleton(0)}
 	core.StartService(&core.ModuleParam{
 		N: ".router",
 		M: m,
@@ -57,7 +56,7 @@ func (s *slave) OnSocketMSG(msg *core.Message) {
 			ok := array[1].(bool)
 			name := array[2].(string)
 			rid := array[3].(uint)
-			core.DispatchGetIdByNameRet(core.ServiceID(id), ok, name, rid)
+			core.DispatchGetIdByNameRet(core.sid(id), ok, name, rid)
 		case core.Cmd_Forward:
 			msg := array[0].(*core.Message)
 			s.forwardM(msg)
@@ -69,7 +68,7 @@ func (s *slave) OnSocketMSG(msg *core.Message) {
 }
 
 func (s *slave) forwardM(msg *core.Message) {
-	isLcoal := core.CheckIsLocalServiceId(core.ServiceID(msg.Dst))
+	isLcoal := core.CheckIsLocalServiceId(core.sid(msg.Dst))
 	if isLcoal {
 		core.ForwardLocal(msg)
 		return

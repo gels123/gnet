@@ -16,6 +16,6 @@ replace (
 	go.uber.org/zap => ./lib/logzap/zap
 	github.com/pkg/errors => ./lib/errors
 	github.com/lestrrat-go/strftime => ./lib/strftime
-	github.com/redis/go-redis => ./lib/go-redis
+	github.com/redis/go-redis/v9 => ./lib/go-redis
 	github.com/go-sql-driver/mysql => ./lib/mysql
 )

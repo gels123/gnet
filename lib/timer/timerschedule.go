@@ -1,75 +1,89 @@
 package timer
 
 import (
+	"gnet/lib/logzap"
 	"gnet/lib/vector"
+	"go.uber.org/zap"
 	"sync"
 	"time"
 )
 
+// 计时器
 type TimerSchedule struct {
-	timers      *vector.Vector
-	addedCache  *vector.Vector
-	deleteCache *vector.Vector
-	mutex       sync.Mutex
-	bStart      bool
-	tick        *time.Ticker
+	timers   *vector.Vector
+	addCache *vector.Vector
+	delCache *vector.Vector
+	started  bool         // 是否已经启动
+	ticker   *time.Ticker //
+	tick     int          // 间隔(毫秒ms)
+	mutex    sync.Mutex
 }
 
 func NewTimerSchedule() *TimerSchedule {
 	ts := &TimerSchedule{}
 	ts.timers = vector.New()
-	ts.addedCache = vector.New()
-	ts.deleteCache = vector.New()
+	ts.addCache = vector.New()
+	ts.delCache = vector.New()
+	ts.started = false
+	ts.ticker = nil
+	ts.tick = 1000 // 默认tick为1秒=1000ms
 	return ts
 }
 
-// Start the TimerSchedule
-func (ts *TimerSchedule) Start() {
-	if ts.bStart {
+// 设置间隔(毫秒ms)
+func (ts *TimerSchedule) SetTick(tick int) {
+	if !ts.started && tick > 0 {
+		ts.tick = tick
 	} else {
-		ts.bStart = true
-		ts.tick = time.NewTicker(time.Duration(100) * time.Millisecond) //millisecond = 毫秒 = 千分之一秒
+		logzap.Error("timerschedule set tick error", zap.Int("tick", tick))
+	}
+}
+
+// 启动计时器
+func (ts *TimerSchedule) Start() {
+	if !ts.started {
+		ts.started = true
+		ts.ticker = time.NewTicker(time.Duration(ts.tick) * time.Millisecond) // 1000毫秒
 		go func() {
 			for {
-				<-ts.tick.C
-				ts.Update(10)
+				if ts.ticker != nil {
+					<-ts.ticker.C
+					ts.Update(ts.tick)
+				} else {
+					break
+				}
 			}
 		}()
 	}
 }
 
-// Stop the TimerSchedule
-func (ts *TimerSchedule) Stop() bool {
-	if ts.bStart {
-		return false
+// 停止计时器计时器
+func (ts *TimerSchedule) Stop() {
+	if ts.ticker != nil {
+		ts.ticker.Stop()
+		ts.ticker = nil
 	}
-	ts.bStart = true
-	ts.tick = time.NewTicker(time.Duration(100) * time.Millisecond)
-	go func() {
-		for {
-			<-ts.tick.C
-			ts.Update(10)
-		}
-	}()
-	return true
+	ts.started = false
 }
 
-// Update update all timers
-func (ts *TimerSchedule) Update(dt int) {
+// Update all timers
+func (ts *TimerSchedule) Update(d int) {
 	ts.mutex.Lock()
-	ts.timers.AppendVec(ts.addedCache)
-	ts.addedCache.Clear()
+	if ts.addCache.Len() > 0 {
+		ts.timers.AppendVec(ts.addCache)
+		ts.addCache.Clear()
+	}
 	ts.mutex.Unlock()
 	for i := 0; i < ts.timers.Len(); i++ {
 		t := ts.timers.At(i).(*Timer)
-		t.update(dt)
-		if t.isComplete {
+		t.update(d)
+		if t.Completed() {
 			ts.UnSchedule(t)
 		}
 	}
 	ts.mutex.Lock()
-	for i := 0; i < ts.deleteCache.Len(); i++ {
-		t := ts.deleteCache.At(i)
+	for i := 0; i < ts.delCache.Len(); i++ {
+		t := ts.delCache.At(i)
 		for i := 0; i < ts.timers.Len(); i++ {
 			if ts.timers.At(i) == t {
 				ts.timers.Delete(i)
@@ -77,25 +91,28 @@ func (ts *TimerSchedule) Update(dt int) {
 			}
 		}
 	}
-	ts.deleteCache.Clear()
+	ts.delCache.Clear()
 	ts.mutex.Unlock()
 }
 
-// Schedule start a timer with interval(100=1s) and repeat.
-// callback will be triggerd each interval, and timer will delete after trigger repeat times
-// if interval is small than schedule's interval
-// it may trigger multitimes at a update.
+// 启动一个倒计时
+// @interval 时间间隔(毫秒ms)
+// @repeat 重复次数 -1=永久重复
 func (ts *TimerSchedule) Schedule(interval, repeat int, cb TimerCallback) *Timer {
+	if repeat == 0 {
+		repeat = 1
+	}
 	t := NewTimer(interval, repeat, cb)
 	ts.mutex.Lock()
-	ts.addedCache.Put(t)
+	ts.addCache.Put(t)
 	ts.mutex.Unlock()
 	return t
 }
 
+// 停止一个倒计时
 func (ts *TimerSchedule) UnSchedule(t *Timer) {
 	ts.mutex.Lock()
-	ts.deleteCache.Put(t)
+	ts.delCache.Put(t)
 	ts.mutex.Unlock()
-	t.cancel()
+	t.Cancel()
 }

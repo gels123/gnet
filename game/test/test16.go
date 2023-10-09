@@ -1,15 +1,14 @@
 package main
 
 import (
-	"gnet/game/conf"
 	"gnet/lib/core"
-	"gnet/lib/loggerbak"
+	"gnet/lib/logsimple"
 	"time"
 )
 
 type Game struct {
-	*core.Skeleton
-	Dst core.ServiceID
+	*core.BaseService
+	Dst core.sid
 }
 
 //func (g *Game) OnMainLoop(dt int) {
@@ -38,7 +37,7 @@ type Game struct {
 //}
 
 func main() {
-	logsimple.Init(conf.LogFilePath, conf.LogFileName, conf.LogFileLevel, conf.LogShellLevel, conf.LogMaxLine, conf.LogBufferSize)
+	//logsimple.Init(conf.LogFilePath, conf.LogFileName, conf.LogFileLevel, conf.LogShellLevel, conf.LogMaxLine, conf.LogBufferSize)
 	logsimple.Info("===== test16 main =====")
 	//id1 := core.StartService(&core.ModuleParam{
 	//	N: "g1",

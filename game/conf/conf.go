@@ -40,4 +40,6 @@ var (
 		MaxSize:  512000000,
 		MaxAge:   time.Hour * 24 * 7,
 	}
+	// 集群节点ID
+	NodeID = 1
 )

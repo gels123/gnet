@@ -2,13 +2,12 @@ package core
 
 import (
 	"fmt"
-	"gnet/lib/utils"
 	"reflect"
 )
 
 type ModuleParam struct {
 	N string
-	M Module
+	M IService
 	L int
 }
 
@@ -16,7 +15,7 @@ type ModuleParam struct {
 // `service' will call module's OnInit after registration
 // and registers name to master if the name(of service) is a global name (starting without a dot)
 // and starts msg loop in an another goroutine
-func StartService(m *ModuleParam) ServiceID {
+func StartService(m *ModuleParam) sid {
 	s := newService(m.N, m.L)
 	s.m = m.M
 	id := registerService(s)
@@ -26,11 +25,7 @@ func StartService(m *ModuleParam) ServiceID {
 		globalName(id, m.N)
 	}
 	s.m.OnModuleStartup(id, m.N)
-	if d > 0 {
-		s.runWithLoop(d)
-	} else {
-		s.run()
-	}
+	s.start(d)
 	return id
 }
 
@@ -84,12 +79,12 @@ func PrintArgListForFunc(f reflect.Value) {
 }
 
 // Parse Node Id parse node id from service id
-func ParseNodeId(id ServiceID) uint64 {
-	return id.parseNodeId()
+func ParseNodeId(id sid) uint64 {
+	return id.NodeId()
 }
 
 // Send send a message to dst service no src service.
-func Send(dst ServiceID, msgType MsgType, encType EncType, cmd CmdType, data ...interface{}) error {
+func Send(dst sid, msgType MsgType, encType EncType, cmd CmdType, data ...interface{}) error {
 	return lowLevelSend(INVALID_SERVICE_ID, dst, msgType, encType, 0, cmd, data...)
 }
 
@@ -131,19 +126,6 @@ func Wait() {
 }
 
 // CheckIsLocalServiceId heck a given service id is a local service
-func CheckIsLocalServiceId(id ServiceID) bool {
+func CheckIsLocalServiceId(id sid) bool {
 	return checkIsLocalId(id)
-}
-
-// SafeGo start a groutine, and handle all panic within it.
-func SafeGo(f func()) {
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				logsimple.Error("recover: stack: %v\n, %v", utils.GetStack(), err)
-			}
-			return
-		}()
-		f()
-	}()
 }

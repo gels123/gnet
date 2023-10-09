@@ -6,7 +6,7 @@ import (
 )
 
 type nameRet struct {
-	id   ServiceID
+	id   sid
 	ok   bool
 	name string
 }
@@ -55,7 +55,7 @@ func RegisterNode(nodeName string) {
 			route(Cmd_RegisterNode, nodeName)
 			h.nodeId = <-registerNodeChan
 			worker, _ = NewIdWorker(int64(h.nodeId))
-			logsimple.Info("SlaveNode register ndoe success: nodeId: %v, nodeName: {%v}", h.nodeId, nodeName)
+			logsimple.Info("SlaveNode register ndoe success: NodeId: %v, nodeName: {%v}", h.nodeId, nodeName)
 		}
 	})
 }
@@ -66,8 +66,8 @@ func DispatchRegisterNodeRet(id uint64) {
 }
 
 // globalName regist name to master
-// it will notify all exist service through distribute msg.
-func globalName(id ServiceID, name string) {
+// it will notify all exist BaseService through distribute msg.
+func globalName(id sid, name string) {
 	route(Cmd_RegisterName, uint64(id), name)
 }
 
@@ -84,7 +84,7 @@ func route(cmd CmdType, data ...interface{}) bool {
 
 // NameToId couldn't guarantee get the correct id for name.
 // it will return err if the named server is until now.
-func NameToId(name string) (ServiceID, error) {
+func NameToId(name string) (sid, error) {
 	ser, err := findServiceByName(name)
 	if err == nil {
 		return ser.getId(), nil
@@ -111,7 +111,7 @@ func NameToId(name string) (ServiceID, error) {
 	return INVALID_SERVICE_ID, ServiceNotFindError
 }
 
-func DispatchGetIdByNameRet(id ServiceID, ok bool, name string, rid uint) {
+func DispatchGetIdByNameRet(id sid, ok bool, name string, rid uint) {
 	nameMapMutex.Lock()
 	ch := nameChanMap[rid]
 	delete(nameChanMap, rid)

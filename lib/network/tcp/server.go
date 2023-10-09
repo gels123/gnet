@@ -10,14 +10,13 @@ import (
 	"time"
 
 	"gnet/lib/core"
-	"gnet/lib/loggerbak"
 )
 
 type Server struct {
 	Host              string
 	Port              string
 	AcceptWhiteIpList []net.IP
-	hostService       core.ServiceID
+	hostService       core.sid
 	listener          *net.TCPListener
 }
 
@@ -25,7 +24,7 @@ const (
 	TCPServerClosed = "TCPServerClosed"
 )
 
-func NewServer(host, port string, hsID core.ServiceID) *Server {
+func NewServer(host, port string, hsID core.sid) *Server {
 	s := &Server{
 		Host:        host,
 		Port:        port,

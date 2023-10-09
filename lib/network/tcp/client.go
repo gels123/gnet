@@ -16,10 +16,10 @@ const (
 )
 
 type Client struct {
-	*core.Skeleton
+	*core.BaseService
 	Con             *net.TCPConn
 	RemoteAddress   *net.TCPAddr
-	hostService     core.ServiceID
+	hostService     core.sid
 	inbuffer        []byte
 	outbuffer       *bufio.Writer
 	parseCache      *ParseCache
@@ -28,9 +28,9 @@ type Client struct {
 	isNeedExit      bool
 }
 
-func NewClient(host, port string, hostID core.ServiceID) *Client {
+func NewClient(host, port string, hostID core.sid) *Client {
 	c := &Client{
-		Skeleton:    core.NewSkeleton(0),
+		BaseService: core.NewSkeleton(0),
 		hostService: hostID,
 	}
 	address := net.JoinHostPort(host, port)
@@ -89,7 +89,7 @@ func (c *Client) sendBufferOutMsgAndData(data []byte) {
 	}
 }
 
-func (c *Client) onSend(src core.ServiceID, param ...interface{}) {
+func (c *Client) onSend(src core.sid, param ...interface{}) {
 	//status check and modify on main goroutinue
 	if c.status != CLIENT_STATUS_CONNECTED {
 		if c.status == CLIENT_STATUS_NOT_CONNECT {

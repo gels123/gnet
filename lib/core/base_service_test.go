@@ -2,22 +2,16 @@ package core_test
 
 import (
 	"fmt"
-	"github.com/sydnash/lotou/conf"
-	"github.com/sydnash/lotou/core"
-	"github.com/sydnash/lotou/log"
+	"gnet/game/conf"
+	"gnet/lib/core"
+	"gnet/lib/logsimple"
 	"testing"
 	"time"
 )
 
 type Game struct {
-	*core.Skeleton
-	Dst core.ServiceID
-}
-
-type XMsg struct {
-	A int32
-	B string
-	C int64
+	*core.BaseService
+	Dst core.sid
 }
 
 func (g *Game) OnMainLoop(dt int) {
@@ -34,27 +28,27 @@ func (g *Game) OnMainLoop(dt int) {
 
 func (g *Game) OnInit() {
 	//test for go and no enc
-	g.RegisterHandlerFunc(core.MSG_TYPE_NORMAL, "testNormal", func(src core.ServiceID, data ...interface{}) {
-		log.Info("%v, %v", src, data)
+	g.RegisterHandlerFunc(core.MSG_TYPE_NORMAL, "testNormal", func(src core.sid, data ...interface{}) {
+		logsimple.Info("%v, %v", src, data)
 	}, true)
-	g.RegisterHandlerFunc(core.MSG_TYPE_REQUEST, "testRequest", func(src core.ServiceID, data ...interface{}) string {
+	g.RegisterHandlerFunc(core.MSG_TYPE_REQUEST, "testRequest", func(src core.sid, data ...interface{}) string {
 		return "world"
 	}, true)
-	g.RegisterHandlerFunc(core.MSG_TYPE_CALL, "testCall", func(src core.ServiceID, data ...interface{}) (string, string) {
+	g.RegisterHandlerFunc(core.MSG_TYPE_CALL, "testCall", func(src core.sid, data ...interface{}) (string, string) {
 		return "hello", "world"
 	}, true)
 }
 
 func TestModule(t *testing.T) {
-	log.Init(conf.LogFilePath, conf.LogFileLevel, conf.LogShellLevel, conf.LogMaxLine, conf.LogBufferSize)
+	logsimple.Init(conf.LogFilePath, conf.LogFileName, conf.LogFileLevel, conf.LogShellLevel, conf.LogMaxLine, conf.LogBufferSize)
 	id1 := core.StartService(&core.ModuleParam{
 		N: "g1",
-		M: &Game{Skeleton: core.NewSkeleton(0)},
+		M: &Game{BaseService: core.NewSkeleton(0)},
 		L: 0,
 	})
 	core.StartService(&core.ModuleParam{
 		N: "g2",
-		M: &Game{Skeleton: core.NewSkeleton(1000), Dst: id1},
+		M: &Game{BaseService: core.NewSkeleton(1000), Dst: id1},
 		L: 0,
 	})
 

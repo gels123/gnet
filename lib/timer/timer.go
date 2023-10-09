@@ -8,13 +8,13 @@ import (
 type TimerCallback func(int)
 
 type Timer struct {
-	cb        TimerCallback
-	interval  int //interval time of milloseconds per trigger
-	elapsed   int //time elapsed
-	repeat    int //repeat times, <= 0 forever
-	repeated  int //allready repeated times
-	completed bool
-	isForever bool
+	interval  int           // 时间间隔(毫秒ms)
+	elapsed   int           // 时间流逝(毫秒ms)
+	repeat    int           // 重复次数 <0永久重复
+	repeated  int           // 已重复次数
+	forever   bool          // 是否永久重复
+	completed bool          // 是否已完成
+	cb        TimerCallback // 回调函数
 }
 
 func NewTimer(interval, repeat int, cb TimerCallback) *Timer {
@@ -23,29 +23,25 @@ func NewTimer(interval, repeat int, cb TimerCallback) *Timer {
 	}
 	t := &Timer{}
 	t.interval = interval
-	t.cb = cb
 	t.repeat = repeat
-	t.isForever = (t.repeat <= 0)
+	t.forever = (t.repeat < 0)
+	t.cb = cb
 	return t
 }
 
-func (t *Timer) update(dt int) {
+func (t *Timer) update(d int) {
 	if t.completed {
 		return
 	}
-
-	t.elapsed += dt
+	t.elapsed += d
 	if t.elapsed < t.interval {
 		return
 	}
-
 	for t.elapsed >= t.interval {
 		t.elapsed -= t.interval
 		t.repeated += 1
-
 		t.trigger()
-
-		if !t.isForever {
+		if !t.forever {
 			if t.repeated >= t.repeat {
 				t.completed = true
 				return
@@ -63,7 +59,7 @@ func (t *Timer) trigger() {
 	t.cb(t.interval)
 }
 
-// Reset reset timer's time elapsed and repeated times.
+// 重置倒计时
 func (t *Timer) Reset() error {
 	if t.completed {
 		return errors.New("timer Reset err: is completed")
@@ -73,6 +69,12 @@ func (t *Timer) Reset() error {
 	return nil
 }
 
-func (t *Timer) cancel() {
+// 取消倒计时
+func (t *Timer) Cancel() {
 	t.completed = true
+}
+
+// 是否已完成
+func (t *Timer) Completed() bool {
+	return t.completed
 }

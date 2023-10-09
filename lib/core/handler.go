@@ -7,19 +7,7 @@ import (
 	"sync"
 )
 
-// definition for node id
-// if system is standalone, then it's node id is DEFAULT_NODE_ID
-// if system is multi node, master's node id is MASTER_NODE_ID, slave's node is allocation by master service.
-const (
-	NODE_ID_OFF                  = 64 - 16
-	NODE_ID_MASK                 = 0xFFFF << NODE_ID_OFF
-	INVALID_SERVICE_ID           = NODE_ID_MASK
-	DEFAULT_NODE_ID              = 0xFFFF
-	MASTER_NODE_ID               = 0
-	INIT_SERVICE_ID    ServiceID = 10
-)
-
-type handleDic map[uint64]*service
+type handleDic map[uint64]*BaseService
 
 // a storage that stores all local services
 type handleStorage struct {
@@ -39,16 +27,16 @@ var (
 func newHandleStorage() *handleStorage {
 	h := &handleStorage{}
 	h.nodeId = DEFAULT_NODE_ID
-	h.dic = make(map[uint64]*service)
+	h.dic = make(map[uint64]*BaseService)
 	h.curId = uint64(INIT_SERVICE_ID)
 	h.baseServiceIdCache = vector.NewCap(1000)
 	return h
 }
 
-// checkIsLocalId checks a given service id is a local service's id
-// a serviceId's node id is equal to DEFAULT_NODE_ID or nodeId is a local service's id
-func checkIsLocalId(id ServiceID) bool {
-	nodeId := id.parseNodeId()
+// checkIsLocalId checks a given BaseService id is a local BaseService's id
+// a serviceId's node id is equal to DEFAULT_NODE_ID or NodeId is a local BaseService's id
+func checkIsLocalId(id sid) bool {
+	nodeId := id.NodeId()
 	if nodeId == DEFAULT_NODE_ID {
 		return true
 	}
@@ -74,8 +62,8 @@ func init() {
 	h = newHandleStorage()
 }
 
-// registerService register a service and allocate a service id to the given service.
-func registerService(s *service) ServiceID {
+// registerService register a BaseService and allocate a BaseService id to the given BaseService.
+func registerService(s *BaseService) sid {
 	h.dicMutex.Lock()
 	defer h.dicMutex.Unlock()
 	var baseServiceId uint64
@@ -87,14 +75,14 @@ func registerService(s *service) ServiceID {
 	//}
 	id := h.nodeId<<NODE_ID_OFF | baseServiceId
 	h.dic[id] = s
-	sid := ServiceID(id)
+	sid := sid(id)
 	s.setId(sid)
 	exitGroup.Add(1)
-	return ServiceID(sid)
+	return sid(sid)
 }
 
-// unregisterService delete a service and put it's to cache which can be resued again when register
-func unregisterService(s *service) {
+// unregisterService delete a BaseService and put it's to cache which can be resued again when register
+func unregisterService(s *BaseService) {
 	h.dicMutex.Lock()
 	defer h.dicMutex.Unlock()
 	id := uint64(s.getId())
@@ -102,12 +90,12 @@ func unregisterService(s *service) {
 		return
 	}
 	delete(h.dic, id)
-	h.baseServiceIdCache.Put((ServiceID(id)).parseBaseId())
+	h.baseServiceIdCache.Put((sid(id)).BaseId())
 	exitGroup.Done()
 }
 
-// findServiceById return a service by service id
-func findServiceById(id ServiceID) (s *service, err error) {
+// findServiceById return a BaseService by BaseService id
+func findServiceById(id sid) (s *BaseService, err error) {
 	h.dicMutex.Lock()
 	defer h.dicMutex.Unlock()
 	s, ok := h.dic[uint64(id)]
@@ -117,8 +105,8 @@ func findServiceById(id ServiceID) (s *service, err error) {
 	return s, err
 }
 
-// findServiceByName return a service by service name, it only return local service.
-func findServiceByName(name string) (s *service, err error) {
+// findServiceByName return a BaseService by BaseService name, it only return local BaseService.
+func findServiceByName(name string) (s *BaseService, err error) {
 	utils.PanicWhen(len(name) == 0, "name must not empty.")
 	h.dicMutex.Lock()
 	defer h.dicMutex.Unlock()

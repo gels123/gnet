@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"gnet/lib/logsimple"
 	"gnet/lib/utils"
 	"reflect"
 )
@@ -78,7 +79,7 @@ func (c *CallHelper) findCallbackDesc(cmd CmdType) *callbackDesc {
 }
 
 // Call invoke special function for cmd
-func (c *CallHelper) Call(cmd CmdType, src ServiceID, param ...interface{}) []interface{} {
+func (c *CallHelper) Call(cmd CmdType, src sid, param ...interface{}) []interface{} {
 	cb := c.findCallbackDesc(cmd)
 	defer func() {
 		if err := recover(); err != nil {
@@ -101,7 +102,7 @@ func (c *CallHelper) Call(cmd CmdType, src ServiceID, param ...interface{}) []in
 }
 
 // CallWithReplyFunc invoke special function for cmd with a reply function which is used to reply Call or Request.
-func (c *CallHelper) CallWithReplyFunc(cmd CmdType, src ServiceID, replyFunc ReplyFunc, param ...interface{}) {
+func (c *CallHelper) CallWithReplyFunc(cmd CmdType, src sid, replyFunc ReplyFunc, param ...interface{}) {
 	cb := c.findCallbackDesc(cmd)
 	//addition two param for source service id and reply function
 	p := make([]reflect.Value, len(param)+2)

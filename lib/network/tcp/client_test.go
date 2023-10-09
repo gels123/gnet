@@ -3,15 +3,14 @@ package tcp_test
 import (
 	"gnet/lib/core"
 	"gnet/lib/encoding/binary"
-	"gnet/lib/loggerbak"
 	"gnet/lib/network/tcp"
 	"testing"
 	"time"
 )
 
 type C struct {
-	*core.Skeleton
-	client  core.ServiceID
+	*core.BaseService
+	client  core.sid
 	encoder *binary.Encoder
 	decoder *binary.Decoder
 }
@@ -50,7 +49,7 @@ func TestClient(t *testing.T) {
 	logsimple.Init("./log", "tcpclient", logsimple.FATAL_LEVEL, logsimple.DEBUG_LEVEL, 10000, 1000)
 
 	for i := 0; i < 1; i++ {
-		c := &C{Skeleton: core.NewSkeleton(10)}
+		c := &C{BaseService: core.NewSkeleton(10)}
 		core.StartService(&core.ModuleParam{
 			N: ".client",
 			M: c,

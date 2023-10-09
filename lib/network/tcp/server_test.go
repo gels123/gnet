@@ -3,13 +3,12 @@ package tcp_test
 import (
 	"gnet/lib/core"
 	"gnet/lib/encoding/binary"
-	"gnet/lib/loggerbak"
 	"gnet/lib/network/tcp"
 	"testing"
 )
 
 type M struct {
-	*core.Skeleton
+	*core.BaseService
 	decoder *binary.Decoder
 }
 
@@ -37,7 +36,7 @@ func (m *M) OnSocketMSG(msg *core.Message) {
 
 func TestServer(t *testing.T) {
 	logsimple.Init("./log", "tcpserver", logsimple.FATAL_LEVEL, logsimple.DEBUG_LEVEL, 10000, 1000)
-	m := &M{Skeleton: core.NewSkeleton(0)}
+	m := &M{BaseService: core.NewSkeleton(0)}
 	m.decoder = binary.NewDecoder()
 	core.StartService(&core.ModuleParam{
 		N: ".m",

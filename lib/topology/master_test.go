@@ -2,14 +2,13 @@ package topology_test
 
 import (
 	"gnet/lib/core"
-	"gnet/lib/loggerbak"
 	"gnet/lib/topology"
 	"testing"
 	"time"
 )
 
 type Game struct {
-	*core.Skeleton
+	*core.BaseService
 }
 
 func (g *Game) OnRequestMSG(msg *core.Message) {
