@@ -8,7 +8,7 @@ import (
 )
 
 type Game struct {
-	*core.BaseService
+	*core.ServiceBase
 }
 
 func (g *Game) OnRequestMSG(msg *core.Message) {
@@ -33,10 +33,10 @@ func TestMaster(t *testing.T) {
 	core.RegisterNode("./topology")
 
 	game := &Game{core.NewSkeleton(0)}
-	id := core.StartService(&core.ModuleParam{
-		N: "game1",
-		M: game,
-		L: 0,
+	id := core.NewService(&core.ModuleParam{
+		name: "game1",
+		M:    game,
+		L:    0,
 	})
 	logsimple.Info("game1's id :%v", id)
 

@@ -5,30 +5,6 @@ import (
 	"reflect"
 )
 
-type ModuleParam struct {
-	N string
-	M IService
-	L int
-}
-
-// StartService starts the given modules with specific names
-// `service' will call module's OnInit after registration
-// and registers name to master if the name(of service) is a global name (starting without a dot)
-// and starts msg loop in an another goroutine
-func StartService(m *ModuleParam) sid {
-	s := newService(m.N, m.L)
-	s.m = m.M
-	id := registerService(s)
-	m.M.setService(s)
-	d := m.M.getDuration()
-	if !checkIsLocalName(m.N) {
-		globalName(id, m.N)
-	}
-	s.m.OnModuleStartup(id, m.N)
-	s.start(d)
-	return id
-}
-
 // HelperFunctionToUseReflectCall helps to convert realparam like([]interface{}) to reflect.Call's param([]reflect.Value
 // and if param is nil, then use reflect.New to create an empty to avoid crash when reflect.Call invokes.
 // and genrates more readable error messages if param is not ok.
@@ -78,21 +54,21 @@ func PrintArgListForFunc(f reflect.Value) {
 	fmt.Println(str)
 }
 
-// Parse Node Id parse node id from service id
-func ParseNodeId(id sid) uint64 {
+// Parse Node Id parse node sid from service sid
+func ParseNodeId(id Sid) uint64 {
 	return id.NodeId()
 }
 
 // Send send a message to dst service no src service.
-func Send(dst sid, msgType MsgType, encType EncType, cmd CmdType, data ...interface{}) error {
+func Send(dst Sid, msgType MsgType, encType EncType, cmd CmdType, data ...interface{}) error {
 	return lowLevelSend(INVALID_SERVICE_ID, dst, msgType, encType, 0, cmd, data...)
 }
 
 // SendCloseToAll simple send a close msg to all service
 func SendCloseToAll() {
-	h.dicMutex.Lock()
-	defer h.dicMutex.Unlock()
-	for _, ser := range h.dic {
+	mgr.dicMutex.Lock()
+	defer mgr.dicMutex.Unlock()
+	for _, ser := range mgr.dictId {
 		localSendWithoutMutex(INVALID_SERVICE_ID, ser, MSG_TYPE_CLOSE, MSG_ENC_TYPE_NO, 0, Cmd_None, false)
 	}
 }
@@ -122,10 +98,10 @@ func RefreshSlaveWhiteIPList(ips []string) {
 
 // Wait wait on a sync.WaitGroup, until all service is closed.
 func Wait() {
-	exitGroup.Wait()
+	wg.Wait()
 }
 
-// CheckIsLocalServiceId heck a given service id is a local service
-func CheckIsLocalServiceId(id sid) bool {
-	return checkIsLocalId(id)
+// CheckIsLocalServiceId heck a given service sid is a local service
+func CheckIsLocalServiceId(id Sid) bool {
+	return isLocalSid(id)
 }

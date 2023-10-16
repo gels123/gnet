@@ -7,7 +7,7 @@ import (
 )
 
 type Game struct {
-	*core.BaseService
+	*core.ServiceBase
 	Dst core.sid
 }
 
@@ -39,13 +39,13 @@ type Game struct {
 func main() {
 	//logsimple.Init(conf.LogFilePath, conf.LogFileName, conf.LogFileLevel, conf.LogShellLevel, conf.LogMaxLine, conf.LogBufferSize)
 	logsimple.Info("===== test16 main =====")
-	//id1 := core.StartService(&core.ModuleParam{
-	//	N: "g1",
+	//id1 := core.NewService(&core.ModuleParam{
+	//	name: "g1",
 	//	M: &Game{Skeleton: core.NewSkeleton(0)},
 	//	L: 0,
 	//})
-	//core.StartService(&core.ModuleParam{
-	//	N: "g2",
+	//core.NewService(&core.ModuleParam{
+	//	name: "g2",
 	//	M: &Game{Skeleton: core.NewSkeleton(1000), Dst: id1},
 	//	L: 0,
 	//})

@@ -1,12 +1,13 @@
 package core
 
 import (
+	"gnet/lib/logsimple"
 	"gnet/lib/vector"
 	"sync"
 )
 
 type nameRet struct {
-	id   sid
+	id   Sid
 	ok   bool
 	name string
 }
@@ -43,19 +44,19 @@ func InitNode(_isStandalone, _isMaster bool) {
 	isStandalone = _isStandalone
 	isMaster = _isMaster
 	if !isStandalone && isMaster {
-		h.nodeId = MASTER_NODE_ID
+		mgr.nodeId = MASTER_NODE_ID
 	}
 }
 
-// RegisterNode : register slave node to master, and get a node id
+// RegisterNode : register slave node to master, and get a node sid
 // block until register success
 func RegisterNode(nodeName string) {
 	once.Do(func() {
 		if !isStandalone && !isMaster {
 			route(Cmd_RegisterNode, nodeName)
-			h.nodeId = <-registerNodeChan
-			worker, _ = NewIdWorker(int64(h.nodeId))
-			logsimple.Info("SlaveNode register ndoe success: NodeId: %v, nodeName: {%v}", h.nodeId, nodeName)
+			mgr.nodeId = <-registerNodeChan
+			worker, _ = NewIdWorker(int64(mgr.nodeId))
+			logsimple.Info("SlaveNode register ndoe success: NodeId: %v, nodeName: {%v}", mgr.nodeId, nodeName)
 		}
 	})
 }
@@ -66,8 +67,8 @@ func DispatchRegisterNodeRet(id uint64) {
 }
 
 // globalName regist name to master
-// it will notify all exist BaseService through distribute msg.
-func globalName(id sid, name string) {
+// it will notify all exist ServiceBase through distribute msg.
+func globalName(id Sid, name string) {
 	route(Cmd_RegisterName, uint64(id), name)
 }
 
@@ -82,14 +83,14 @@ func route(cmd CmdType, data ...interface{}) bool {
 	return true
 }
 
-// NameToId couldn't guarantee get the correct id for name.
+// NameToId couldn't guarantee get the correct sid for name.
 // it will return err if the named server is until now.
-func NameToId(name string) (sid, error) {
+func NameToId(name string) (Sid, error) {
 	ser, err := findServiceByName(name)
 	if err == nil {
 		return ser.getId(), nil
 	}
-	if !checkIsLocalName(name) {
+	if !isLocalName(name) {
 		nameMapMutex.Lock()
 		nameRequestId++
 		tmp := nameRequestId
@@ -111,7 +112,7 @@ func NameToId(name string) (sid, error) {
 	return INVALID_SERVICE_ID, ServiceNotFindError
 }
 
-func DispatchGetIdByNameRet(id sid, ok bool, name string, rid uint) {
+func DispatchGetIdByNameRet(id Sid, ok bool, name string, rid uint) {
 	nameMapMutex.Lock()
 	ch := nameChanMap[rid]
 	delete(nameChanMap, rid)

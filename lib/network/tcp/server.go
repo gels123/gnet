@@ -100,10 +100,10 @@ func (self *Server) Listen() error {
 				}
 			}
 			a := NewAgent(tcpCon, self.hostService)
-			core.StartService(&core.ModuleParam{
-				N: "",
-				M: a,
-				L: 0,
+			core.NewService(&core.ModuleParam{
+				name: "",
+				M:    a,
+				L:    0,
 			})
 		}
 	}()

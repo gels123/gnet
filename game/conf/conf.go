@@ -1,6 +1,8 @@
 package conf
 
-import "time"
+import (
+	"time"
+)
 
 // redis配置定义
 type stRedisConf struct {
@@ -43,3 +45,11 @@ var (
 	// 集群节点ID
 	NodeID = 1
 )
+
+// 初始化
+func init() {
+	// debug模式测试配置
+	if Debug {
+
+	}
+}

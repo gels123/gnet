@@ -4958,7 +4958,7 @@ func parseClientInfo(txt string) (info *ClientInfo, err error) {
 				info.Idle = time.Duration(idle) * time.Second
 			}
 		case "flags":
-			if val == "N" {
+			if val == "name" {
 				break
 			}
 

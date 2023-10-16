@@ -111,7 +111,7 @@ func (b *buffer) fill(need int) error {
 	}
 }
 
-// returns next N bytes from buffer.
+// returns next name bytes from buffer.
 // The returned slice is only guaranteed to be valid until the next read
 func (b *buffer) readNext(need int) ([]byte, error) {
 	if b.length < need {

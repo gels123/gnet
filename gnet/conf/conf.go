@@ -42,7 +42,7 @@ func PrintCurrentConfSetToStd() {
 	fmt.Printf("CallTimeOut = %v\n", CallTimeOut)
 }
 
-//~
+// ~
 func assignTo(r map[string]interface{}, target interface{}, name string) {
 	if t := reflect.TypeOf(target); t.Kind() != reflect.Ptr {
 		fmt.Println("Kind is", t.Kind())
@@ -77,8 +77,8 @@ const (
 	privateConfiguraPath = ".private/svrconf.json"
 )
 
-//~ If you wish to alter the configuration filepath
-//~ Overwrite the configures by configuration file.
+// ~ If you wish to alter the configuration filepath
+// ~ Overwrite the configures by configuration file.
 func init() {
 	goPath := os.ExpandEnv("$GOPATH")
 	if len(goPath) <= 0 {

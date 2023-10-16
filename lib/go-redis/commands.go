@@ -2003,7 +2003,7 @@ func (c cmdable) SUnionStore(ctx context.Context, destination string, keys ...st
 type XAddArgs struct {
 	Stream     string
 	NoMkStream bool
-	MaxLen     int64 // MAXLEN N
+	MaxLen     int64 // MAXLEN name
 	MinID      string
 	// Approx causes MaxLen and MinID to use "~" matcher (instead of "=").
 	Approx bool

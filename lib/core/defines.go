@@ -59,37 +59,35 @@ const (
 	MSG_ENC_TYPE_GO EncType = "EncType.LotouGob"
 )
 
-// 节点ID配置
-// if system is standalone, then it's node id is DEFAULT_NODE_ID
-// if system is multi node, master's node id is MASTER_NODE_ID, slave's node is allocation by master service.
+// 节点ID配置, 高16位为集群节点ID, 低48位为服务ID
 const (
-	NODE_ID_OFF            = 64 - 16 // 48
+	NODE_ID_OFF            = 64 - 16 // =48
+	NODE_ID_MAX            = 0xFFFF
 	NODE_ID_MASK           = 0xFFFF << NODE_ID_OFF
 	INVALID_SERVICE_ID     = NODE_ID_MASK
-	DEFAULT_NODE_ID        = 0xFFFF
 	MASTER_NODE_ID         = 0
-	INIT_SERVICE_ID    sid = 10
+	SERVICE_ID_MIN     Sid = 10
 )
 
 // 服务ID定义(高16位为节点ID,低48位为服务ID)
-type sid uint64
+type Sid uint64
 
-// 节点ID
-func (id sid) NodeId() uint64 {
+// 集群节点ID
+func (id Sid) NodeId() uint64 {
 	return (uint64(id) & NODE_ID_MASK) >> NODE_ID_OFF
 }
 
 // 服务ID
-func (id sid) BaseId() uint64 {
+func (id Sid) BaseId() uint64 {
 	return uint64(id) & (^uint64(NODE_ID_MASK))
 }
 
 // 是否合法
-func (id sid) Valid() bool {
+func (id Sid) Valid() bool {
 	return !(id == INVALID_SERVICE_ID || id == 0)
 }
 
 // 是否不合法
-func (id sid) Invalid() bool {
+func (id Sid) Invalid() bool {
 	return id == INVALID_SERVICE_ID || id == 0
 }

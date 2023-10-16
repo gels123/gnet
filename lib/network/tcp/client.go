@@ -16,7 +16,7 @@ const (
 )
 
 type Client struct {
-	*core.BaseService
+	*core.ServiceBase
 	Con             *net.TCPConn
 	RemoteAddress   *net.TCPAddr
 	hostService     core.sid
@@ -30,7 +30,7 @@ type Client struct {
 
 func NewClient(host, port string, hostID core.sid) *Client {
 	c := &Client{
-		BaseService: core.NewSkeleton(0),
+		ServiceBase: core.NewSkeleton(0),
 		hostService: hostID,
 	}
 	address := net.JoinHostPort(host, port)

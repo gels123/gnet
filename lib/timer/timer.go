@@ -23,8 +23,11 @@ func NewTimer(interval, repeat int, cb TimerCallback) *Timer {
 	}
 	t := &Timer{}
 	t.interval = interval
+	t.elapsed = 0
 	t.repeat = repeat
+	t.repeated = 0
 	t.forever = (t.repeat < 0)
+	t.completed = false
 	t.cb = cb
 	return t
 }

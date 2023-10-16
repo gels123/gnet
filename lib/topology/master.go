@@ -13,7 +13,7 @@ type Node struct {
 }
 
 type master struct {
-	*core.BaseService
+	*core.ServiceBase
 	nodesMap      map[uint64]Node //nodeid : Node struct
 	globalNameMap map[string]core.sid
 	tcpServer     *tcp.Server
@@ -21,13 +21,13 @@ type master struct {
 }
 
 func StartMaster(ip, port string) {
-	m := &master{BaseService: core.NewSkeleton(0)}
+	m := &master{ServiceBase: core.NewSkeleton(0)}
 	m.nodesMap = make(map[uint64]Node)
 	m.globalNameMap = make(map[string]core.sid)
-	core.StartService(&core.ModuleParam{
-		N: ".router",
-		M: m,
-		L: 0,
+	core.NewService(&core.ModuleParam{
+		name: ".router",
+		M:    m,
+		L:    0,
 	})
 
 	if !conf.CoreIsStandalone {

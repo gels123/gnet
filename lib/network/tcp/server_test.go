@@ -8,7 +8,7 @@ import (
 )
 
 type M struct {
-	*core.BaseService
+	*core.ServiceBase
 	decoder *binary.Decoder
 }
 
@@ -36,12 +36,12 @@ func (m *M) OnSocketMSG(msg *core.Message) {
 
 func TestServer(t *testing.T) {
 	logsimple.Init("./log", "tcpserver", logsimple.FATAL_LEVEL, logsimple.DEBUG_LEVEL, 10000, 1000)
-	m := &M{BaseService: core.NewSkeleton(0)}
+	m := &M{ServiceBase: core.NewSkeleton(0)}
 	m.decoder = binary.NewDecoder()
-	core.StartService(&core.ModuleParam{
-		N: ".m",
-		M: m,
-		L: 0,
+	core.NewService(&core.ModuleParam{
+		name: ".m",
+		M:    m,
+		L:    0,
 	})
 
 	s := tcp.NewServer("", "3333", m.Id)

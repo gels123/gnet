@@ -79,7 +79,7 @@ func (c *CallHelper) findCallbackDesc(cmd CmdType) *callbackDesc {
 }
 
 // Call invoke special function for cmd
-func (c *CallHelper) Call(cmd CmdType, src sid, param ...interface{}) []interface{} {
+func (c *CallHelper) Call(cmd CmdType, src Sid, param ...interface{}) []interface{} {
 	cb := c.findCallbackDesc(cmd)
 	defer func() {
 		if err := recover(); err != nil {
@@ -87,9 +87,9 @@ func (c *CallHelper) Call(cmd CmdType, src sid, param ...interface{}) []interfac
 		}
 	}()
 
-	//addition one param for source service id
+	//addition one param for source service sid
 	p := make([]reflect.Value, len(param)+1)
-	p[0] = reflect.ValueOf(src) //append src service id
+	p[0] = reflect.ValueOf(src) //append src service sid
 	HelperFunctionToUseReflectCall(cb.cb, p, 1, param)
 
 	ret := cb.cb.Call(p)
@@ -102,9 +102,9 @@ func (c *CallHelper) Call(cmd CmdType, src sid, param ...interface{}) []interfac
 }
 
 // CallWithReplyFunc invoke special function for cmd with a reply function which is used to reply Call or Request.
-func (c *CallHelper) CallWithReplyFunc(cmd CmdType, src sid, replyFunc ReplyFunc, param ...interface{}) {
+func (c *CallHelper) CallWithReplyFunc(cmd CmdType, src Sid, replyFunc ReplyFunc, param ...interface{}) {
 	cb := c.findCallbackDesc(cmd)
-	//addition two param for source service id and reply function
+	//addition two param for source service sid and reply function
 	p := make([]reflect.Value, len(param)+2)
 	p[0] = reflect.ValueOf(src)
 	p[1] = reflect.ValueOf(replyFunc)

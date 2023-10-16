@@ -129,7 +129,7 @@ func SamplerHook(hook func(entry Entry, dec SamplingDecision)) SamplerOption {
 // caps the CPU and I/O load of logging while attempting to preserve a
 // representative subset of your logs.
 //
-// Zap samples by logging the first N entries with a given level and message
+// Zap samples by logging the first name entries with a given level and message
 // each tick. If more Entries with the same level and message are seen during
 // the same interval, every Mth message is logged and the rest are dropped.
 //
@@ -141,7 +141,7 @@ func SamplerHook(hook func(entry Entry, dec SamplingDecision)) SamplerOption {
 // in a one second interval as-is. Following that, it will allow through
 // every 5th log entry with the same level and message in that interval.
 //
-// If thereafter is zero, the Core will drop all log entries after the first N
+// If thereafter is zero, the Core will drop all log entries after the first name
 // in that interval.
 //
 // Sampler can be configured to report sampling decisions with the SamplerHook
@@ -184,7 +184,7 @@ var (
 // caps the CPU and I/O load of logging while attempting to preserve a
 // representative subset of your logs.
 //
-// Zap samples by logging the first N entries with a given level and message
+// Zap samples by logging the first name entries with a given level and message
 // each tick. If more Entries with the same level and message are seen during
 // the same interval, every Mth message is logged and the rest are dropped.
 //

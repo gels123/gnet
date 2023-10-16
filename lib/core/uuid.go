@@ -84,7 +84,7 @@ func (iw *IdWorker) timeReGen(last int64) int64 {
 	return ts
 }
 
-// NewId Func: Generate next id
+// NewId Func: Generate next sid
 func (iw *IdWorker) NextId() (ts int64, err error) {
 	iw.lock.Lock()
 	defer iw.lock.Unlock()
@@ -99,7 +99,7 @@ func (iw *IdWorker) NextId() (ts int64, err error) {
 	}
 
 	if ts < iw.lastTimeStamp {
-		err = errors.New("Clock moved backwards, Refuse gen id")
+		err = errors.New("Clock moved backwards, Refuse gen sid")
 		return 0, err
 	}
 	iw.lastTimeStamp = ts

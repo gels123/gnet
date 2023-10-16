@@ -23,7 +23,7 @@ import (
 */
 
 type Agent struct {
-	*core.BaseService
+	*core.ServiceBase
 	Con                  *net.TCPConn
 	closeing             bool
 	hostService          core.sid
@@ -71,7 +71,7 @@ func NewAgent(con *net.TCPConn, hostID core.sid) *Agent {
 	a := &Agent{
 		Con:         con,
 		hostService: hostID,
-		BaseService: core.NewSkeleton(5000),
+		ServiceBase: core.NewSkeleton(5000),
 	}
 	return a
 }

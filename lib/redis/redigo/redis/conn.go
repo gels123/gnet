@@ -520,7 +520,7 @@ func (c *conn) readReply() (interface{}, error) {
 		case len(line) == 3 && line[1] == 'O' && line[2] == 'K':
 			// Avoid allocation for frequent "+OK" response.
 			return okReply, nil
-		case len(line) == 5 && line[1] == 'P' && line[2] == 'O' && line[3] == 'N' && line[4] == 'G':
+		case len(line) == 5 && line[1] == 'P' && line[2] == 'O' && line[3] == 'name' && line[4] == 'G':
 			// Avoid allocation in PING command benchmarks :)
 			return pongReply, nil
 		default:

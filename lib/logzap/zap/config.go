@@ -139,7 +139,7 @@ func NewDevelopmentEncoderConfig() zapcore.EncoderConfig {
 		// Keys can be anything except the empty string.
 		TimeKey:        "T",
 		LevelKey:       "L",
-		NameKey:        "N",
+		NameKey:        "name",
 		CallerKey:      "C",
 		FunctionKey:    zapcore.OmitKey,
 		MessageKey:     "M",

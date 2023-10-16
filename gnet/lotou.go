@@ -16,15 +16,17 @@ import (
 
 type CloseFunc func()
 
-//Start start lotou with given modules which in is in data.
-//initialize log by config param
-//if lotou's network is standalone, then only start master service.
-//if lotou's network is not standalone,
-// 		if node is master, then start master service
-//		if node is slave, then start slave service, and register node to get a nodeid from master which will block until it success
-//capture system's SIGKILL SIGTERM signal
-//and wait until all service are closed.
-//f will be called when SIGKILL or SIGTERM is received.
+// Start start lotou with given modules which in is in data.
+// initialize log by config param
+// if lotou's network is standalone, then only start master service.
+// if lotou's network is not standalone,
+//
+//	if node is master, then start master service
+//	if node is slave, then start slave service, and register node to get a nodeid from master which will block until it success
+//
+// capture system's SIGKILL SIGTERM signal
+// and wait until all service are closed.
+// f will be called when SIGKILL or SIGTERM is received.
 func Start(f CloseFunc, data ...*core.ModuleParam) {
 	StartWithName("", f, nil, data...)
 }
@@ -54,7 +56,7 @@ func StartWithName(nodeName string, f CloseFunc, customLogger log.Logger, data .
 	}
 
 	for _, m := range data {
-		core.StartService(m)
+		core.NewService(m)
 	}
 
 	/*err := http.ListenAndServe(":10000", nil)
@@ -81,7 +83,7 @@ func StartWithName(nodeName string, f CloseFunc, customLogger log.Logger, data .
 	log.Close()
 }
 
-//RawStart start lotou, with no wait
+// RawStart start lotou, with no wait
 func RawStart(nodeName string, data ...*core.ModuleParam) {
 	log.Init(conf.LogFilePath, conf.LogFileLevel, conf.LogShellLevel, conf.LogMaxLine, conf.LogBufferSize)
 
@@ -98,6 +100,6 @@ func RawStart(nodeName string, data ...*core.ModuleParam) {
 	}
 
 	for _, m := range data {
-		core.StartService(m)
+		core.NewService(m)
 	}
 }

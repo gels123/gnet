@@ -1,20 +1,26 @@
-package core_test
+package core
 
 import (
 	"fmt"
-	"gnet/game/conf"
-	"gnet/lib/core"
 	"gnet/lib/logsimple"
 	"testing"
 	"time"
 )
 
-type Game struct {
-	*core.BaseService
-	Dst core.sid
+// 测试服务
+type TestService struct {
+	base *core.ServiceBase //
 }
 
-func (g *Game) OnMainLoop(dt int) {
+func newTestService() *Doctor {
+	d := &TestService{
+		base: core.NewService("testsvc", 1024),
+	}
+	d.base.setSelf(d)
+	return d
+}
+
+func (g *TestService) OnMainLoop(dt int) {
 	g.Send(g.Dst, core.MSG_TYPE_NORMAL, core.MSG_ENC_TYPE_GO, "testNormal", g.Name, []byte{1, 2, 3, 4, 56})
 	g.RawSend(g.Dst, core.MSG_TYPE_NORMAL, "testNormal", g.Name, g.Id)
 
@@ -26,7 +32,7 @@ func (g *Game) OnMainLoop(dt int) {
 	fmt.Println(g.Call(g.Dst, core.MSG_ENC_TYPE_GO, "testCall", "hello"))
 }
 
-func (g *Game) OnInit() {
+func (g *TestService) OnInit() {
 	//test for go and no enc
 	g.RegisterHandlerFunc(core.MSG_TYPE_NORMAL, "testNormal", func(src core.sid, data ...interface{}) {
 		logsimple.Info("%v, %v", src, data)
@@ -40,16 +46,10 @@ func (g *Game) OnInit() {
 }
 
 func TestModule(t *testing.T) {
-	logsimple.Init(conf.LogFilePath, conf.LogFileName, conf.LogFileLevel, conf.LogShellLevel, conf.LogMaxLine, conf.LogBufferSize)
-	id1 := core.StartService(&core.ModuleParam{
-		N: "g1",
-		M: &Game{BaseService: core.NewSkeleton(0)},
-		L: 0,
-	})
-	core.StartService(&core.ModuleParam{
-		N: "g2",
-		M: &Game{BaseService: core.NewSkeleton(1000), Dst: id1},
-		L: 0,
+	testService := core.NewService(&core.ModuleParam{
+		name: "g1",
+		M:    &TestService{ServiceBase: core.NewSkeleton(0)},
+		L:    0,
 	})
 
 	ch := make(chan int)

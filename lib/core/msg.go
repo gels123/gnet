@@ -11,21 +11,21 @@ type CmdType string
 // Message is the based struct of msg through all service
 // by convention, the first value of Data is a string as the method name
 type Message struct {
-	Src     sid
-	Dst     sid
+	Src     Sid
+	Dst     Sid
 	Type    MsgType // Used to be int32
 	EncType EncType
-	Id      uint64 //request id or call id
+	Id      uint64 //request sid or call sid
 	Cmd     CmdType
 	Data    []interface{}
 }
 
 type NodeInfo struct {
 	Name string
-	Id   sid
+	Id   Sid
 }
 
-func NewMessage(src, dst sid, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) *Message {
+func NewMessage(src, dst Sid, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) *Message {
 	switch encType {
 	case MSG_ENC_TYPE_NO:
 	case MSG_ENC_TYPE_GO:
@@ -40,17 +40,17 @@ func init() {
 	gob.RegisterStructType(NodeInfo{})
 }
 
-func sendNoEnc(src sid, dst sid, msgType MsgType, id uint64, cmd CmdType, data ...interface{}) error {
+func sendNoEnc(src Sid, dst Sid, msgType MsgType, id uint64, cmd CmdType, data ...interface{}) error {
 	return lowLevelSend(src, dst, msgType, MSG_ENC_TYPE_NO, id, cmd, data...)
 }
 
-func send(src sid, dst sid, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
+func send(src Sid, dst Sid, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
 	return lowLevelSend(src, dst, msgType, encType, id, cmd, data...)
 }
 
-func lowLevelSend(src, dst sid, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
+func lowLevelSend(src, dst Sid, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
 	dsts, err := findServiceById(dst)
-	isLocal := checkIsLocalId(dst)
+	isLocal := isLocalSid(dst)
 	//a local service is not been found
 	if err != nil && isLocal {
 		return err
@@ -58,16 +58,16 @@ func lowLevelSend(src, dst sid, msgType MsgType, encType EncType, id uint64, cmd
 	var msg *Message
 	msg = NewMessage(src, dst, msgType, encType, id, cmd, data...)
 	if err != nil {
-		//doesn't find service and dstid is remote id, send a forward msg to router.
+		//doesn't find service and dstid is remote sid, send a forward msg to router.
 		route(Cmd_Forward, msg)
 		return nil
 	}
-	dsts.pushMSG(msg)
+	dsts.pushMsg(msg)
 	return nil
 }
 
-// send msg to dst by dst's BaseService name
-func sendName(src sid, dst string, msgType MsgType, cmd CmdType, data ...interface{}) error {
+// send msg to dst by dst's ServiceBase name
+func sendName(src Sid, dst string, msgType MsgType, cmd CmdType, data ...interface{}) error {
 	dsts, err := findServiceByName(dst)
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func sendName(src sid, dst string, msgType MsgType, cmd CmdType, data ...interfa
 
 // ForwardLocal forward the message to the specified local sevice.
 func ForwardLocal(m *Message) {
-	dsts, err := findServiceById(sid(m.Dst))
+	dsts, err := findServiceById(Sid(m.Dst))
 	if err != nil {
 		return
 	}
@@ -87,7 +87,7 @@ func ForwardLocal(m *Message) {
 		MSG_TYPE_RESPOND,
 		MSG_TYPE_CALL,
 		MSG_TYPE_DISTRIBUTE:
-		dsts.pushMSG(m)
+		dsts.pushMsg(m)
 	case MSG_TYPE_RET:
 		if m.EncType == MSG_ENC_TYPE_GO {
 			t, err := gob.Unpack(m.Data[0].([]byte))
@@ -102,18 +102,18 @@ func ForwardLocal(m *Message) {
 }
 
 // DistributeMSG distribute the message to all local sevice
-func DistributeMSG(src sid, cmd CmdType, data ...interface{}) {
-	h.dicMutex.Lock()
-	defer h.dicMutex.Unlock()
-	for dst, ser := range h.dic {
-		if sid(dst) != src {
+func DistributeMSG(src Sid, cmd CmdType, data ...interface{}) {
+	mgr.dicMutex.Lock()
+	defer mgr.dicMutex.Unlock()
+	for dst, ser := range mgr.dictId {
+		if Sid(dst) != src {
 			localSendWithoutMutex(src, ser, MSG_TYPE_DISTRIBUTE, MSG_ENC_TYPE_NO, 0, cmd, data...)
 		}
 	}
 }
 
-// localSendWithoutMutex send a message to the local BaseService with no mutex.
-func localSendWithoutMutex(src sid, dstService *BaseService, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) {
+// localSendWithoutMutex send a message to the local ServiceBase with no mutex.
+func localSendWithoutMutex(src Sid, dstService *ServiceBase, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) {
 	msg := NewMessage(src, dstService.getId(), msgType, encType, id, cmd, data...)
-	dstService.pushMSG(msg)
+	dstService.pushMsg(msg)
 }

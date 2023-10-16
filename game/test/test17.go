@@ -10,15 +10,15 @@ type itest interface {
 }
 
 type Person struct {
-	son itest
+	self itest
 }
 
 func newPerson() *Person {
 	return &Person{}
 }
 
-func (p *Person) setSuper(super itest) {
-	p.son = super
+func (p *Person) setSelf(self itest) {
+	p.self = self
 }
 
 func (p *Person) Say1() {
@@ -27,8 +27,8 @@ func (p *Person) Say1() {
 }
 
 func (p *Person) Say2() {
-	if p.son != nil {
-		p.son.Say2()
+	if p.self != nil {
+		p.self.Say2()
 		return
 	}
 	fmt.Println("=Person Say2")
@@ -40,7 +40,7 @@ type Doctor struct {
 
 func newDoctor() *Doctor {
 	d := &Doctor{base: newPerson()}
-	//d.base.setSuper(d)
+	d.base.setSelf(d)
 	return d
 }
 

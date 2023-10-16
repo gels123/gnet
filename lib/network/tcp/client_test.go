@@ -9,7 +9,7 @@ import (
 )
 
 type C struct {
-	*core.BaseService
+	*core.ServiceBase
 	client  core.sid
 	encoder *binary.Encoder
 	decoder *binary.Decoder
@@ -49,20 +49,20 @@ func TestClient(t *testing.T) {
 	logsimple.Init("./log", "tcpclient", logsimple.FATAL_LEVEL, logsimple.DEBUG_LEVEL, 10000, 1000)
 
 	for i := 0; i < 1; i++ {
-		c := &C{BaseService: core.NewSkeleton(10)}
-		core.StartService(&core.ModuleParam{
-			N: ".client",
-			M: c,
-			L: 0,
+		c := &C{ServiceBase: core.NewSkeleton(10)}
+		core.NewService(&core.ModuleParam{
+			name: ".client",
+			M:    c,
+			L:    0,
 		})
 		c.encoder = binary.NewEncoder()
 		c.decoder = binary.NewDecoder()
 
 		client := tcp.NewClient("127.0.0.1", "3333", c.Id)
-		c.client = core.StartService(&core.ModuleParam{
-			N: ".cc",
-			M: client,
-			L: 0,
+		c.client = core.NewService(&core.ModuleParam{
+			name: ".cc",
+			M:    client,
+			L:    0,
 		})
 	}
 
