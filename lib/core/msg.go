@@ -8,16 +8,15 @@ type MsgType string
 type EncType string
 type CmdType string
 
-// Message is the based struct of msg through all service
-// by convention, the first value of Data is a string as the method name
+// 消息结构
 type Message struct {
-	Src     Sid
-	Dst     Sid
-	Type    MsgType // Used to be int32
-	EncType EncType
-	Id      uint64 //request sid or call sid
-	Cmd     CmdType
-	Data    []interface{}
+	Src     Sid           // 源服务地址
+	Dst     Sid           // 目标服务地址
+	Type    MsgType       // 消息类型
+	EncType EncType       //
+	Id      uint64        // request sid or call sid
+	Cmd     CmdType       //
+	Data    []interface{} //
 }
 
 type NodeInfo struct {
@@ -26,12 +25,18 @@ type NodeInfo struct {
 }
 
 func NewMessage(src, dst Sid, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) *Message {
-	switch encType {
-	case MSG_ENC_TYPE_NO:
-	case MSG_ENC_TYPE_GO:
+	if encType == MSG_ENC_TYPE_GOB {
 		data = append([]interface{}(nil), gob.Pack(data...))
 	}
-	msg := &Message{src, dst, msgType, encType, id, cmd, data}
+	msg := &Message{
+		Src:     src,
+		Dst:     dst,
+		Type:    msgType,
+		EncType: encType,
+		Id:      id,
+		Cmd:     cmd,
+		Data:    data,
+	}
 	return msg
 }
 
@@ -72,7 +77,7 @@ func sendName(src Sid, dst string, msgType MsgType, cmd CmdType, data ...interfa
 	if err != nil {
 		return err
 	}
-	return lowLevelSend(src, dsts.getId(), msgType, MSG_ENC_TYPE_GO, 0, cmd, data...)
+	return lowLevelSend(src, dsts.getId(), msgType, MSG_ENC_TYPE_GOB, 0, cmd, data...)
 }
 
 // ForwardLocal forward the message to the specified local sevice.
@@ -89,7 +94,7 @@ func ForwardLocal(m *Message) {
 		MSG_TYPE_DISTRIBUTE:
 		dsts.pushMsg(m)
 	case MSG_TYPE_RET:
-		if m.EncType == MSG_ENC_TYPE_GO {
+		if m.EncType == MSG_ENC_TYPE_GOB {
 			t, err := gob.Unpack(m.Data[0].([]byte))
 			if err != nil {
 				panic(err)

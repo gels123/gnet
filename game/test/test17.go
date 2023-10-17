@@ -62,7 +62,7 @@ func main() {
 	var t itest = newDoctor()
 	t.Say1()
 
-	//
+	//7 8 9 10 11 12
 	//ch := make(chan int)
 	//go func() {
 	//	time.Sleep(10 * time.Second)

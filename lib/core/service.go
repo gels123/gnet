@@ -208,7 +208,7 @@ func (s *ServiceBase) pushMsg(msg *Message) {
 
 // 分发消息
 func (s *ServiceBase) dispatchMSG(msg *Message) bool {
-	if msg.EncType == MSG_ENC_TYPE_GO {
+	if msg.EncType == MSG_ENC_TYPE_GOB {
 		t, err := gob.Unpack(msg.Data[0].([]byte))
 		if err != nil {
 			panic(err)
@@ -249,7 +249,7 @@ func (s *ServiceBase) request(dst Sid, encType EncType, timeout int, respondCb i
 	s.requestMutex.Unlock()
 	utils.PanicWhen(cbp.respond.Kind() != reflect.Func, "respond cb must function.")
 
-	lowLevelSend(s.getId(), dst, MSG_TYPE_REQUEST, encType, id, cmd, data...)
+	lowLevelSend(s.GetId(), dst, MSG_TYPE_REQUEST, encType, id, cmd, data...)
 
 	if timeout > 0 {
 		time.AfterFunc(time.Duration(timeout)*time.Millisecond, func() {

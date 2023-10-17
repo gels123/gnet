@@ -12,15 +12,15 @@ type Game struct {
 }
 
 //func (g *Game) OnMainLoop(dt int) {
-//	g.Send(g.Dst, core.MSG_TYPE_NORMAL, core.MSG_ENC_TYPE_GO, "testNormal", g.Name, []byte{1, 2, 3, 4, 56})
+//	g.Send(g.Dst, core.MSG_TYPE_NORMAL, core.MSG_ENC_TYPE_GOB, "testNormal", g.Name, []byte{1, 2, 3, 4, 56})
 //	g.RawSend(g.Dst, core.MSG_TYPE_NORMAL, "testNormal", g.Name, g.Id)
 //
 //	t := func(timeout bool, data ...interface{}) {
 //		fmt.Println("request respond ", timeout, data)
 //	}
-//	g.Request(g.Dst, core.MSG_ENC_TYPE_GO, 10, t, "testRequest", "hello")
+//	g.Request(g.Dst, core.MSG_ENC_TYPE_GOB, 10, t, "testRequest", "hello")
 //
-//	fmt.Println(g.Call(g.Dst, core.MSG_ENC_TYPE_GO, "testCall", "hello"))
+//	fmt.Println(g.Call(g.Dst, core.MSG_ENC_TYPE_GOB, "testCall", "hello"))
 //}
 //
 //func (g *Game) OnInit() {

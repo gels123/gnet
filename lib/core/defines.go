@@ -50,13 +50,13 @@ const (
 const (
 
 	MSG_ENC_TYPE_NO = iota
-	MSG_ENC_TYPE_GO
+	MSG_ENC_TYPE_GOB
 
 )
 */
 const (
-	MSG_ENC_TYPE_NO EncType = "EncType.No"
-	MSG_ENC_TYPE_GO EncType = "EncType.LotouGob"
+	MSG_ENC_TYPE_NIL EncType = "nil"
+	MSG_ENC_TYPE_GOB EncType = "gob"
 )
 
 // 节点ID配置, 高16位为集群节点ID, 低48位为服务ID
