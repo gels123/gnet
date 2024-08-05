@@ -2,40 +2,36 @@ package main
 
 import (
 	"fmt"
-	"gnet/lib/lockfreequeue"
 	"gnet/lib/utils"
-	"regexp"
-	"runtime/debug"
-	"time"
 )
 
 func init() {
 }
 
-var patternConversionRegexps = []*regexp.Regexp{
-	regexp.MustCompile(`%[%+A-Za-z]`),
-	regexp.MustCompile(`\*+`),
-}
+// var patternConversionRegexps = []*regexp.Regexp{
+// 	regexp.MustCompile(`%[%+A-Za-z]`),
+// 	regexp.MustCompile(`\*+`),
+// }
 
-func aa() {
-	bb()
-}
+// func aa() {
+// 	bb()
+// }
 
-func bb() {
-	cc()
-}
+// func bb() {
+// 	cc()
+// }
 
-func cc() {
-	gg()
-}
+// func cc() {
+// 	gg()
+// }
 
-func gg() {
-	fmt.Println("==========sdfasdfadsf===gg=", string(debug.Stack()))
+// func gg() {
+// 	fmt.Println("==========sdfasdfadsf===gg=", string(debug.Stack()))
 
-	t1 := time.Now()
-	t2 := t1.Add(time.Second * 5)
-	time.AfterFunc(t2.Sub(t1), gg)
-}
+// 	t1 := time.Now()
+// 	t2 := t1.Add(time.Second * 5)
+// 	time.AfterFunc(t2.Sub(t1), gg)
+// }
 
 func main() {
 	fmt.Println("==11111=====" + utils.GetExeDir())
@@ -63,14 +59,14 @@ func main() {
 	//	time.Sleep(time.Second)
 	//}
 
-	queue := lockfreequeue.NewQueue(1024 * 1024)
-	queue.Put(100)
-	queue.Put(200)
-	queue.Put(300)
-	queue.Put(400)
-	queue.Put(500)
-	queue.Put(600)
-	cell, _, _ := queue.Get()
-	var isok bool = true
-	fmt.Println("-------", cell, !isok)
+	// queue := lockfreequeue.NewQueue(1024 * 1024)
+	// queue.Put(100)
+	// queue.Put(200)
+	// queue.Put(300)
+	// queue.Put(400)
+	// queue.Put(500)
+	// queue.Put(600)
+	// cell, _, _ := queue.Get()
+	// var isok bool = true
+	// fmt.Println("-------", cell, !isok)
 }

@@ -1,6 +1,6 @@
 module gnet
 
-go 1.19
+go 1.22.2
 
 require (
 	go.uber.org/atomic v1.7.0 // indirect

@@ -4,8 +4,6 @@
 package utils
 
 import (
-	"gnet/lib/logzap"
-	"go.uber.org/zap"
 	"regexp"
 	"runtime/debug"
 )
@@ -88,7 +86,7 @@ func SafeGo(f func()) {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				logzap.Error("recover error", zap.String("stack", GetStack()))
+				// logzap.Error("recover error", zap.String("stack", GetStack()))
 			}
 			return
 		}()
