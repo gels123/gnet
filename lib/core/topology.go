@@ -7,7 +7,7 @@ import (
 )
 
 type nameRet struct {
-	id   Sid
+	id   SID
 	ok   bool
 	name string
 }
@@ -68,7 +68,7 @@ func DispatchRegisterNodeRet(id uint64) {
 
 // globalName regist name to master
 // it will notify all exist ServiceBase through distribute msg.
-func globalName(id Sid, name string) {
+func globalName(id SID, name string) {
 	route(Cmd_RegisterName, uint64(id), name)
 }
 
@@ -85,7 +85,7 @@ func route(cmd CmdType, data ...interface{}) bool {
 
 // NameToId couldn't guarantee get the correct sid for name.
 // it will return err if the named server is until now.
-func NameToId(name string) (Sid, error) {
+func NameToId(name string) (SID, error) {
 	ser, err := findServiceByName(name)
 	if err == nil {
 		return ser.getId(), nil
@@ -112,7 +112,7 @@ func NameToId(name string) (Sid, error) {
 	return INVALID_SERVICE_ID, ServiceNotFindError
 }
 
-func DispatchGetIdByNameRet(id Sid, ok bool, name string, rid uint) {
+func DispatchGetIdByNameRet(id SID, ok bool, name string, rid uint) {
 	nameMapMutex.Lock()
 	ch := nameChanMap[rid]
 	delete(nameChanMap, rid)

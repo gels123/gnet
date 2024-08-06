@@ -55,12 +55,12 @@ func PrintArgListForFunc(f reflect.Value) {
 }
 
 // Parse Node Id parse node sid from service sid
-func ParseNodeId(id Sid) uint64 {
+func ParseNodeId(id SID) uint64 {
 	return id.NodeId()
 }
 
 // Send send a message to dst service no src service.
-func Send(dst Sid, msgType MsgType, encType EncType, cmd CmdType, data ...interface{}) error {
+func Send(dst SID, msgType MsgType, encType EncType, cmd CmdType, data ...interface{}) error {
 	return lowLevelSend(INVALID_SERVICE_ID, dst, msgType, encType, 0, cmd, data...)
 }
 
@@ -102,6 +102,6 @@ func Wait() {
 }
 
 // CheckIsLocalServiceId heck a given service sid is a local service
-func CheckIsLocalServiceId(id Sid) bool {
+func CheckIsLocalServiceId(id SID) bool {
 	return isLocalSid(id)
 }

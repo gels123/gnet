@@ -51,6 +51,7 @@ func main() {
 	// go aa()
 
 	// logzap.SetSource("gelsxxx")
+	// logzap.Panic("dffffffffffffffffff")
 	logzap.Infow("========sdfadf===", "num=", 100)
 	// logzap.Error("========sdfadf===", zap.String("nnnn", "nihao"))
 	// for {

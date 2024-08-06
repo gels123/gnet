@@ -4,12 +4,11 @@ import (
 	"errors"
 	"gnet/game/conf"
 	"gnet/lib/logzap"
-	"go.uber.org/zap"
 	"sync"
 	"sync/atomic"
 )
 
-// 服务管理
+// 服务管理器
 type serviceMgr struct {
 	dictId   sync.Map // ID-服务字典
 	dictName sync.Map // 名称-服务字典
@@ -18,14 +17,14 @@ type serviceMgr struct {
 }
 
 var (
-	mgr *serviceMgr
-	wg  sync.WaitGroup
+	mgr *serviceMgr    // 服务管理器实例
+	wg  sync.WaitGroup // wg
 )
 
 func newServiceMgr() *serviceMgr {
 	mgr := &serviceMgr{}
 	if conf.NodeID >= NODE_ID_MAX {
-		panic("new service mgr error")
+		logzap.Panic("newServiceMgr error")
 	}
 	mgr.nodeId = uint64(conf.NodeID)
 	mgr.curId = uint64(SERVICE_ID_MIN)
@@ -33,7 +32,7 @@ func newServiceMgr() *serviceMgr {
 }
 
 // 是否本地服务
-func isLocalSid(sid Sid) bool {
+func isLocalSid(sid SID) bool {
 	nodeId := sid.NodeId()
 	if nodeId == mgr.nodeId {
 		return true
@@ -41,8 +40,9 @@ func isLocalSid(sid Sid) bool {
 	return false
 }
 
+// 是否本地服务
 // isLocalName checks a given name is a local name.
-// a name Start with '.' or empty is a local name. others a all global name
+// a name Start with '.' or empty is a local name. otherwise, is a all global name
 func isLocalName(name string) bool {
 	v, ok := mgr.dictName.Load(name)
 	if v != nil && ok {
@@ -52,19 +52,19 @@ func isLocalName(name string) bool {
 }
 
 // 注册服务
-func registService(s *ServiceBase) Sid {
+func registService(s *ServiceBase) SID {
 	v, ok := mgr.dictName.Load(s.GetName())
 	if ok && v != nil {
-		panic("regist service error: name exsit")
+		logzap.Panicw("registService error: name exist", "name=", s.GetName())
 	}
 	id := atomic.AddUint64(&mgr.curId, 1)
 	if id >= NODE_ID_MAX {
-		panic("regist service error: id invalid")
+		logzap.Panicw("registService error: id invalid", "name=", s.GetName())
 	}
 	id = mgr.nodeId<<NODE_ID_OFF | id
 	mgr.dictId.Store(id, s)
 	mgr.dictName.Store(s.GetName(), s)
-	sid := Sid(id)
+	sid := SID(id)
 	s.setId(sid)
 	wg.Add(1)
 	return sid
@@ -76,7 +76,7 @@ func unregistService(s *ServiceBase) {
 	id := uint64(sid)
 	_, ok := mgr.dictId.Load(id)
 	if !ok {
-		logzap.Warnw("unregist service error", zap.Uint64("sid", id))
+		logzap.Warnw("unregistService error: id invalid", "id=", id)
 		return
 	}
 	mgr.dictId.Delete(id)
@@ -84,8 +84,8 @@ func unregistService(s *ServiceBase) {
 	wg.Done()
 }
 
-// 根据id查找服务
-func findServiceById(sid Sid) (s *ServiceBase, err error) {
+// 根据id查找本地服务
+func findServiceById(sid SID) (s *ServiceBase, err error) {
 	id := uint64(sid)
 	v, ok := mgr.dictId.Load(id)
 	if !ok {
@@ -96,6 +96,7 @@ func findServiceById(sid Sid) (s *ServiceBase, err error) {
 	return s, err
 }
 
+// 根据名称查找本地服务
 // findServiceByName return a ServiceBase by ServiceBase name, it only return local ServiceBase.
 func findServiceByName(name string) (s *ServiceBase, err error) {
 	if len(name) == 0 {

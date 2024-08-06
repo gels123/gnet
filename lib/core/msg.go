@@ -10,8 +10,8 @@ type CmdType string
 
 // 消息结构
 type Message struct {
-	Src     Sid           // 源服务地址
-	Dst     Sid           // 目标服务地址
+	Src     SID           // 源服务地址
+	Dst     SID           // 目标服务地址
 	Type    MsgType       // 消息类型
 	EncType EncType       //
 	Id      uint64        // request sid or call sid
@@ -21,10 +21,10 @@ type Message struct {
 
 type NodeInfo struct {
 	Name string
-	Id   Sid
+	Id   SID
 }
 
-func NewMessage(src, dst Sid, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) *Message {
+func NewMessage(src, dst SID, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) *Message {
 	if encType == MSG_ENC_TYPE_GOB {
 		data = append([]interface{}(nil), gob.Pack(data...))
 	}
@@ -45,15 +45,15 @@ func init() {
 	gob.RegisterStructType(NodeInfo{})
 }
 
-func sendNoEnc(src Sid, dst Sid, msgType MsgType, id uint64, cmd CmdType, data ...interface{}) error {
+func sendNoEnc(src SID, dst SID, msgType MsgType, id uint64, cmd CmdType, data ...interface{}) error {
 	return lowLevelSend(src, dst, msgType, MSG_ENC_TYPE_NO, id, cmd, data...)
 }
 
-func send(src Sid, dst Sid, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
+func send(src SID, dst SID, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
 	return lowLevelSend(src, dst, msgType, encType, id, cmd, data...)
 }
 
-func lowLevelSend(src, dst Sid, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
+func lowLevelSend(src, dst SID, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
 	dsts, err := findServiceById(dst)
 	isLocal := isLocalSid(dst)
 	//a local service is not been found
@@ -72,7 +72,7 @@ func lowLevelSend(src, dst Sid, msgType MsgType, encType EncType, id uint64, cmd
 }
 
 // send msg to dst by dst's ServiceBase name
-func sendName(src Sid, dst string, msgType MsgType, cmd CmdType, data ...interface{}) error {
+func sendName(src SID, dst string, msgType MsgType, cmd CmdType, data ...interface{}) error {
 	dsts, err := findServiceByName(dst)
 	if err != nil {
 		return err
@@ -82,7 +82,7 @@ func sendName(src Sid, dst string, msgType MsgType, cmd CmdType, data ...interfa
 
 // ForwardLocal forward the message to the specified local sevice.
 func ForwardLocal(m *Message) {
-	dsts, err := findServiceById(Sid(m.Dst))
+	dsts, err := findServiceById(SID(m.Dst))
 	if err != nil {
 		return
 	}
@@ -107,18 +107,18 @@ func ForwardLocal(m *Message) {
 }
 
 // DistributeMSG distribute the message to all local sevice
-func DistributeMSG(src Sid, cmd CmdType, data ...interface{}) {
+func DistributeMSG(src SID, cmd CmdType, data ...interface{}) {
 	mgr.dicMutex.Lock()
 	defer mgr.dicMutex.Unlock()
 	for dst, ser := range mgr.dictId {
-		if Sid(dst) != src {
+		if SID(dst) != src {
 			localSendWithoutMutex(src, ser, MSG_TYPE_DISTRIBUTE, MSG_ENC_TYPE_NO, 0, cmd, data...)
 		}
 	}
 }
 
 // localSendWithoutMutex send a message to the local ServiceBase with no mutex.
-func localSendWithoutMutex(src Sid, dstService *ServiceBase, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) {
+func localSendWithoutMutex(src SID, dstService *ServiceBase, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) {
 	msg := NewMessage(src, dstService.getId(), msgType, encType, id, cmd, data...)
 	dstService.pushMsg(msg)
 }

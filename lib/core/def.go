@@ -19,6 +19,7 @@ const (
 
 /*
 const (
+
 	MSG_TYPE_NORMAL = iota
 	MSG_TYPE_REQUEST
 	MSG_TYPE_RESPOND
@@ -29,9 +30,9 @@ const (
 	MSG_TYPE_SOCKET
 	MSG_TYPE_ERR
 	MSG_TYPE_DISTRIBUTE
-	MSG_TYPE_MAX
-)*/
 
+)
+*/
 const (
 	MSG_TYPE_NORMAL     MsgType = "MsgType.Normal"
 	MSG_TYPE_REQUEST    MsgType = "MsgType.Request"
@@ -43,7 +44,6 @@ const (
 	MSG_TYPE_SOCKET     MsgType = "MsgType.Socket"
 	MSG_TYPE_ERR        MsgType = "MsgType.Error"
 	MSG_TYPE_DISTRIBUTE MsgType = "MsgType.Distribute"
-	//MSG_TYPE_MAX="MsgType.Max"
 )
 
 /*
@@ -66,28 +66,28 @@ const (
 	NODE_ID_MASK           = 0xFFFF << NODE_ID_OFF
 	INVALID_SERVICE_ID     = NODE_ID_MASK
 	MASTER_NODE_ID         = 0
-	SERVICE_ID_MIN     Sid = 10
+	SERVICE_ID_MIN     SID = 10
 )
 
 // 服务ID定义(高16位为节点ID,低48位为服务ID)
-type Sid uint64
+type SID uint64
 
 // 集群节点ID
-func (id Sid) NodeId() uint64 {
+func (id SID) NodeId() uint64 {
 	return (uint64(id) & NODE_ID_MASK) >> NODE_ID_OFF
 }
 
 // 服务ID
-func (id Sid) BaseId() uint64 {
+func (id SID) BaseId() uint64 {
 	return uint64(id) & (^uint64(NODE_ID_MASK))
 }
 
 // 是否合法
-func (id Sid) Valid() bool {
+func (id SID) Valid() bool {
 	return !(id == INVALID_SERVICE_ID || id == 0)
 }
 
 // 是否不合法
-func (id Sid) Invalid() bool {
+func (id SID) Invalid() bool {
 	return id == INVALID_SERVICE_ID || id == 0
 }
