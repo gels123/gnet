@@ -7,8 +7,6 @@
 package logzap
 
 import (
-	"github.com/pkg/errors"
-	"gnet/lib/utils"
 	"io"
 	"os"
 	"path/filepath"
@@ -16,7 +14,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"gnet/game/conf"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -125,22 +126,22 @@ var (
 func init() {
 	fileDir := conf.LogsConf.FileDir
 	if fileDir[0] == '.' {
-		fileDir = filepath.Join(utils.GetCurDir(), fileDir) // '.'开头认为是相对路径
+		fileDir = filepath.Join(getCurDir(), fileDir) // '.'开头认为是相对路径
 	}
 	if fileDir != "" {
-		err := utils.CreateDir(fileDir)
+		err := createDir(fileDir)
 		if err != nil {
-			panic(errors.Wrap(err, `logzap init err`))
+			panic(errors.Wrap(err, `logzap init error`))
 		}
 	}
 	fileName := conf.LogsConf.FileName + ".%Y%m%d"
 	maxSize := conf.LogsConf.MaxSize
 	if maxSize <= 0 {
-		panic(errors.New(`logzap init err maxSize`))
+		panic(errors.New(`logzap init error maxSize`))
 	}
 	maxAge := conf.LogsConf.MaxAge
 	if maxAge <= 0 {
-		panic(errors.New(`logzap init err maxAge`))
+		panic(errors.New(`logzap init error maxAge`))
 	}
 	rotateTime := time.Hour * 24
 	if conf.Debug {

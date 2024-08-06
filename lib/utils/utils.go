@@ -4,8 +4,11 @@
 package utils
 
 import (
+	"gnet/lib/logzap"
 	"regexp"
 	"runtime/debug"
+
+	"go.uber.org/zap"
 )
 
 var (
@@ -49,7 +52,7 @@ func CatchPanic(f func()) (err interface{}) {
 	defer func() {
 		err := recover()
 		if err != nil {
-			//logzap.Errorf("%v panic, stack: %v\n, %v", f, helper.GetStack(), err)
+			logzap.Errorf("%v panic, stack: %v\n, %v", f, GetStack(), err)
 		}
 	}()
 	f()
@@ -62,7 +65,7 @@ func RunPanicless(f func()) (panicless bool) {
 		err := recover()
 		panicless = (err == nil)
 		if err != nil {
-			//logzap.Errorf("%v panic, stack: %v\n, %v", f, helper.GetStack(), err)
+			logzap.Errorf("%v panic, stack: %v\n, %v", f, GetStack(), err)
 		}
 	}()
 	f()
@@ -86,7 +89,7 @@ func SafeGo(f func()) {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				// logzap.Error("recover error", zap.String("stack", GetStack()))
+				logzap.Error("recover error", zap.String("stack", GetStack()))
 			}
 			return
 		}()

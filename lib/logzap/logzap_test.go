@@ -2,7 +2,7 @@ package logzap
 
 import "testing"
 
-func TestGWLog(t *testing.T) {
+func TestLogzap(t *testing.T) {
 	SetSource("gwlog_test")
 	//SetOutput([]string{"stderr", "gwlog_test.log"})
 	//SetLevel(debugLevel)

@@ -2,7 +2,6 @@ package logzap
 
 import (
 	"fmt"
-	"gnet/lib/utils"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -122,7 +121,7 @@ func (dw *divWriter) genFileName() string {
 		} else {
 			tmp = filepath.Join(dw.fileDir, newFileName)
 			for _, fname := range matches {
-				if utils.IsFile(fname) {
+				if isFile(fname) {
 					ok := strings.HasPrefix(fname, tmp) // fname begin with tmp
 					if ok {
 						n := strings.LastIndex(fname, ".")
