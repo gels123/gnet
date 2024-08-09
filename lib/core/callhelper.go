@@ -3,7 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
-	"gnet/lib/logsimple"
+	"gnet/lib/logzap"
 	"gnet/lib/utils"
 	"reflect"
 )
@@ -25,16 +25,16 @@ type callbackDesc struct {
 }
 
 type CallHelper struct {
-	funcMap         map[CmdType]*callbackDesc
-	hostServiceName string //help to locate which callback is not registered.
+	serviceName string //help to locate which callback is not registered.
+	funcMap     map[CmdType]*callbackDesc
 }
 
 type ReplyFunc func(data ...interface{})
 
 func NewCallHelper(name string) *CallHelper {
 	return &CallHelper{
-		hostServiceName: name,
-		funcMap:         make(map[CmdType]*callbackDesc),
+		serviceName: name,
+		funcMap:     make(map[CmdType]*callbackDesc),
 	}
 }
 
@@ -45,11 +45,10 @@ func (c *CallHelper) AddFunc(cmd CmdType, fun interface{}) {
 	c.funcMap[cmd] = &callbackDesc{f, true}
 }
 
-// AddMethod add callback with struct's method by method name
-// method name muse be exported
+// AddMethod add callback with struct's method by method name. The method name must be exported.
 func (c *CallHelper) AddMethod(cmd CmdType, v interface{}, methodName string) {
-	self := reflect.ValueOf(v)
-	f := self.MethodByName(methodName)
+	val := reflect.ValueOf(v)
+	f := val.MethodByName(methodName)
 	utils.PanicWhen(f.Kind() != reflect.Func, fmt.Sprintf("[CallHelper:AddMethod] cmd{%v} method must be a function type.", cmd))
 	c.funcMap[cmd] = &callbackDesc{f, true}
 }
@@ -68,13 +67,14 @@ func (c *CallHelper) getIsAutoReply(cmd CmdType) bool {
 	return c.findCallbackDesc(cmd).isAutoReply
 }
 
+// 查找函数
 func (c *CallHelper) findCallbackDesc(cmd CmdType) *callbackDesc {
 	cb, ok := c.funcMap[cmd]
 	if !ok {
 		if cb, ok = c.funcMap[Cmd_Default]; ok {
-			//log.Info("func: <%v>:%d is not found in {%v}, use default cmd handler.", cmd, len(cmd), c.hostServiceName)
+
 		} else {
-			logsimple.Fatal("func: <%v>:%d is not found in {%v}", cmd, len(cmd), c.hostServiceName)
+			logzap.Panicw("func not found", "serviceName", c.serviceName, "cmd", cmd)
 		}
 	}
 	return cb
@@ -82,13 +82,13 @@ func (c *CallHelper) findCallbackDesc(cmd CmdType) *callbackDesc {
 
 // Call invoke special function for cmd
 func (c *CallHelper) Call(cmd CmdType, src SID, param ...interface{}) []interface{} {
-	cb := c.findCallbackDesc(cmd)
 	defer func() {
 		if err := recover(); err != nil {
-			logsimple.Fatal("CallHelper.Call err: method: %v %v", cmd, err)
+			logzap.Errorw("CallHelper.Call error", "serviceName", c.serviceName, "cmd", cmd, "err", err)
 		}
 	}()
 
+	cb := c.findCallbackDesc(cmd)
 	//addition one param for source service sid
 	p := make([]reflect.Value, len(param)+1)
 	p[0] = reflect.ValueOf(src) //append src service sid
@@ -105,17 +105,18 @@ func (c *CallHelper) Call(cmd CmdType, src SID, param ...interface{}) []interfac
 
 // CallWithReplyFunc invoke special function for cmd with a reply function which is used to reply Call or Request.
 func (c *CallHelper) CallWithReplyFunc(cmd CmdType, src SID, replyFunc ReplyFunc, param ...interface{}) {
+	defer func() {
+		if err := recover(); err != nil {
+			logzap.Errorw("CallHelper.Call error", "serviceName", c.serviceName, "cmd", cmd, "err", err)
+		}
+	}()
+
 	cb := c.findCallbackDesc(cmd)
 	//addition two param for source service sid and reply function
 	p := make([]reflect.Value, len(param)+2)
-	p[0] = reflect.ValueOf(src)
+	p[0] = reflect.ValueOf(src) //append src service sid
 	p[1] = reflect.ValueOf(replyFunc)
-
 	HelperFunctionToUseReflectCall(cb.cb, p, 2, param)
-	defer func() {
-		if err := recover(); err != nil {
-			logsimple.Fatal("CallHelper.Call err: method: %v %v", cmd, err)
-		}
-	}()
+
 	cb.cb.Call(p)
 }

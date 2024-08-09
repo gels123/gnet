@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"gnet/lib/logzap"
 	"reflect"
 )
 
@@ -10,31 +11,32 @@ import (
 // and genrates more readable error messages if param is not ok.
 func HelperFunctionToUseReflectCall(f reflect.Value, callParam []reflect.Value, startNum int, realParam []interface{}) {
 	n := len(realParam)
-	lastCallParamIdx := f.Type().NumIn() - 1
+	lastIdx := f.Type().NumIn() - 1
 	isVariadic := f.Type().IsVariadic()
 	for i := 0; i < n; i++ {
-		paramIndex := i + startNum
-		if !isVariadic && paramIndex >= f.Type().NumIn() {
-			panic(fmt.Sprintf("InvocationCausedPanic(%v): called param count(%v) is len than reciver function's parma count(%v)", f.Type().String(), len(callParam), f.Type().NumIn()))
+		idx := i + startNum
+		if !isVariadic && idx >= f.Type().NumIn() {
+			errStr := fmt.Sprintf("InvocationCausedPanic(%v): called param count(%v) is len than reciver function's parma count(%v)", f.Type().String(), len(callParam), f.Type().NumIn())
+			logzap.Panicw(errStr)
 		}
 		var expectedType reflect.Type
-		if isVariadic && paramIndex >= lastCallParamIdx { //variadic function's last param is []T
-			expectedType = f.Type().In(lastCallParamIdx)
+		if isVariadic && idx >= lastIdx { //variadic function's last param is []T
+			expectedType = f.Type().In(lastIdx)
 			expectedType = expectedType.Elem()
 		} else {
-			expectedType = f.Type().In(paramIndex)
+			expectedType = f.Type().In(idx)
 		}
 		//if param is nil, create a empty reflect.Value
 		if realParam[i] == nil {
-			callParam[paramIndex] = reflect.New(expectedType).Elem()
+			callParam[idx] = reflect.New(expectedType).Elem()
 		} else {
-			callParam[paramIndex] = reflect.ValueOf(realParam[i])
+			callParam[idx] = reflect.ValueOf(realParam[i])
 		}
-		actualType := callParam[paramIndex].Type()
+		actualType := callParam[idx].Type()
 		if !actualType.AssignableTo(expectedType) {
 			//panic if param is not assignable to Call
-			errStr := fmt.Sprintf("InvocationCausedPanic(%v): called with a mismatched parameter type [parameter #%v: expected %v; got %v].", f.Type().String(), paramIndex, expectedType, actualType)
-			panic(errStr)
+			errStr := fmt.Sprintf("InvocationCausedPanic(%v): called with a mismatched parameter type [parameter #%v: expected %v; got %v].", f.Type().String(), idx, expectedType, actualType)
+			logzap.Panicw(errStr)
 		}
 	}
 }
