@@ -10,21 +10,21 @@ type CmdType string
 
 // 消息结构
 type Message struct {
-	Src     SID           // 源服务地址
-	Dst     SID           // 目标服务地址
+	Src     SvcId         // 源服务地址
+	Dst     SvcId         // 目标服务地址
 	Type    MsgType       // 消息类型
-	EncType EncType       //
+	EncType EncType       // 序列化类型
 	Id      uint64        // request sid or call sid
-	Cmd     CmdType       //
-	Data    []interface{} //
+	Cmd     CmdType       // 函数指令
+	Data    []interface{} // 函数参数
 }
 
 type NodeInfo struct {
 	Name string
-	Id   SID
+	Id   SvcId
 }
 
-func NewMessage(src, dst SID, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) *Message {
+func NewMessage(src SvcId, dst SvcId, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) *Message {
 	if encType == MSG_ENC_TYPE_GOB {
 		data = append([]interface{}(nil), gob.Pack(data...))
 	}
@@ -40,20 +40,15 @@ func NewMessage(src, dst SID, msgType MsgType, encType EncType, id uint64, cmd C
 	return msg
 }
 
-func init() {
-	gob.RegisterStructType(Message{})
-	gob.RegisterStructType(NodeInfo{})
+func sendNoEnc(src SvcId, dst SvcId, msgType MsgType, id uint64, cmd CmdType, data ...interface{}) error {
+	return lowLevelSend(src, dst, msgType, MSG_ENC_TYPE_NIL, id, cmd, data...)
 }
 
-func sendNoEnc(src SID, dst SID, msgType MsgType, id uint64, cmd CmdType, data ...interface{}) error {
-	return lowLevelSend(src, dst, msgType, MSG_ENC_TYPE_NO, id, cmd, data...)
-}
-
-func send(src SID, dst SID, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
+func send(src SvcId, dst SvcId, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
 	return lowLevelSend(src, dst, msgType, encType, id, cmd, data...)
 }
 
-func lowLevelSend(src, dst SID, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
+func lowLevelSend(src SvcId, dst SvcId, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
 	dsts, err := findServiceById(dst)
 	isLocal := isLocalSid(dst)
 	//a local service is not been found
@@ -72,7 +67,7 @@ func lowLevelSend(src, dst SID, msgType MsgType, encType EncType, id uint64, cmd
 }
 
 // send msg to dst by dst's ServiceBase name
-func sendName(src SID, dst string, msgType MsgType, cmd CmdType, data ...interface{}) error {
+func sendName(src SvcId, dst string, msgType MsgType, cmd CmdType, data ...interface{}) error {
 	dsts, err := findServiceByName(dst)
 	if err != nil {
 		return err
@@ -82,7 +77,7 @@ func sendName(src SID, dst string, msgType MsgType, cmd CmdType, data ...interfa
 
 // ForwardLocal forward the message to the specified local sevice.
 func ForwardLocal(m *Message) {
-	dsts, err := findServiceById(SID(m.Dst))
+	dsts, err := findServiceById(SvcId(m.Dst))
 	if err != nil {
 		return
 	}
@@ -107,18 +102,23 @@ func ForwardLocal(m *Message) {
 }
 
 // DistributeMSG distribute the message to all local sevice
-func DistributeMSG(src SID, cmd CmdType, data ...interface{}) {
+func DistributeMSG(src SvcId, cmd CmdType, data ...interface{}) {
 	mgr.dicMutex.Lock()
 	defer mgr.dicMutex.Unlock()
 	for dst, ser := range mgr.dictId {
-		if SID(dst) != src {
+		if SvcId(dst) != src {
 			localSendWithoutMutex(src, ser, MSG_TYPE_DISTRIBUTE, MSG_ENC_TYPE_NO, 0, cmd, data...)
 		}
 	}
 }
 
 // localSendWithoutMutex send a message to the local ServiceBase with no mutex.
-func localSendWithoutMutex(src SID, dstService *ServiceBase, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) {
+func localSendWithoutMutex(src SvcId, dstService *ServiceBase, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) {
 	msg := NewMessage(src, dstService.getId(), msgType, encType, id, cmd, data...)
 	dstService.pushMsg(msg)
+}
+
+func init() {
+	gob.RegisterStructType(Message{})
+	gob.RegisterStructType(NodeInfo{})
 }

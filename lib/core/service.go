@@ -44,7 +44,7 @@ type ServiceOptions struct {
 // 服务基类, 实现服务接口(IService)
 type ServiceBase struct {
 	self              IService                      // self
-	sid               SID                           // 服务ID
+	sid               SvcId                         // 服务ID
 	name              string                        // 服务名称
 	msgChan           chan *Message                 // 消息通道
 	msgSz             int                           // 消息缓冲大小
@@ -67,7 +67,7 @@ type requestCB struct {
 }
 
 // 创建一个新服务,
-func NewService(opt ServiceOptions) SID {
+func NewService(opt ServiceOptions) SvcId {
 	if len(opt.name) == 0 {
 		panic("new service error: name invalid or repeat")
 	}
@@ -93,12 +93,12 @@ func (s *ServiceBase) SetSelf(self IService) {
 }
 
 // 获取服务ID
-func (s *ServiceBase) GetId() SID {
+func (s *ServiceBase) GetId() SvcId {
 	return s.sid
 }
 
 // 设置服务ID
-func (s *ServiceBase) setId(id SID) {
+func (s *ServiceBase) setId(id SvcId) {
 	s.sid = id
 }
 
@@ -221,7 +221,7 @@ func (s *ServiceBase) dispatchMSG(msg *Message) bool {
 }
 
 // respndCb is a function like: func(isok bool, ...interface{})  the first param must be a bool
-func (s *ServiceBase) request(dst SID, encType EncType, timeout int, respondCb interface{}, cmd CmdType, data ...interface{}) {
+func (s *ServiceBase) request(dst SvcId, encType EncType, timeout int, respondCb interface{}, cmd CmdType, data ...interface{}) {
 	s.requestMutex.Lock()
 	id := s.reqId
 	s.reqId++
@@ -238,7 +238,7 @@ func (s *ServiceBase) request(dst SID, encType EncType, timeout int, respondCb i
 			_, ok := s.requestMap[id]
 			s.requestMutex.Unlock()
 			if ok {
-				lowLevelSend(INVALID_SERVICE_ID, s.getId(), MSG_TYPE_TIMEOUT, MSG_ENC_TYPE_NO, id, Cmd_None)
+				lowLevelSend(INVALID_SRC_ID, s.getId(), MSG_TYPE_TIMEOUT, MSG_ENC_TYPE_NO, id, Cmd_None)
 			}
 		})
 	}
@@ -264,7 +264,7 @@ func (s *ServiceBase) dispatchRequest(msg *Message) {
 	s.OnRequestMSG(msg)
 }
 
-func (s *ServiceBase) respond(dst SID, encType EncType, rid uint64, data ...interface{}) {
+func (s *ServiceBase) respond(dst SvcId, encType EncType, rid uint64, data ...interface{}) {
 	lowLevelSend(s.getId(), dst, MSG_TYPE_RESPOND, encType, rid, Cmd_None, data...)
 }
 
@@ -295,7 +295,7 @@ func (s *ServiceBase) dispatchRespond(m *Message) {
 	cb.Call(param)
 }
 
-func (s *ServiceBase) call(dst SID, encType EncType, cmd CmdType, data ...interface{}) ([]interface{}, error) {
+func (s *ServiceBase) call(dst SvcId, encType EncType, cmd CmdType, data ...interface{}) ([]interface{}, error) {
 	utils.PanicWhen(dst == s.getId(), "dst must equal to s's sid")
 	s.callMutex.Lock()
 	id := s.callId
@@ -327,7 +327,7 @@ func (s *ServiceBase) call(dst SID, encType EncType, cmd CmdType, data ...interf
 	return ret, nil
 }
 
-func (s *ServiceBase) callWithTimeout(dst SID, encType EncType, timeout int, cmd CmdType, data ...interface{}) ([]interface{}, error) {
+func (s *ServiceBase) callWithTimeout(dst SvcId, encType EncType, timeout int, cmd CmdType, data ...interface{}) ([]interface{}, error) {
 	utils.PanicWhen(dst == s.getId(), "dst must equal to s's sid")
 	s.callMutex.Lock()
 	id := s.callId
@@ -363,7 +363,7 @@ func (s *ServiceBase) dispatchCall(msg *Message) {
 	s.OnCallMSG(msg)
 }
 
-func (s *ServiceBase) ret(dst SID, encType EncType, cid uint64, data ...interface{}) {
+func (s *ServiceBase) ret(dst SvcId, encType EncType, cid uint64, data ...interface{}) {
 	var dstService *ServiceBase
 	dstService, err := findServiceById(dst)
 	if err != nil {
@@ -394,50 +394,50 @@ func (s *ServiceBase) schedule(interval, repeat int, cb timer.TimerCallback) *ti
 
 // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-func (s *ServiceBase) OnModuleStartup(sid SID, serviceName string) {
+func (s *ServiceBase) OnModuleStartup(sid SvcId, serviceName string) {
 	s.normalDispatcher = NewCallHelper(serviceName + ":normalDispatcher")
 	s.requestDispatcher = NewCallHelper(serviceName + ":requestDispatcher")
 	s.callDispatcher = NewCallHelper(serviceName + ":callDispatcher")
 }
 
 // Send消息
-func (s *ServiceBase) Send(addr SID, msgType MsgType, encType EncType, cmd CmdType, data ...interface{}) {
+func (s *ServiceBase) Send(addr SvcId, msgType MsgType, encType EncType, cmd CmdType, data ...interface{}) {
 	lowLevelSend(s.getId(), addr, msgType, encType, 0, cmd, data...)
 }
 
 // RawSend not encode variables, be careful use
 // variables that passed by reference may be changed by others
-func (s *ServiceBase) RawSend(dst SID, msgType MsgType, cmd CmdType, data ...interface{}) {
+func (s *ServiceBase) RawSend(dst SvcId, msgType MsgType, cmd CmdType, data ...interface{}) {
 	sendNoEnc(s.getId(), dst, msgType, 0, cmd, data...)
 }
 
 // if isForce is false, then it will just notify the sevice it need to close
 // then service can do choose close immediate or close after self clean.
 // if isForce is true, then it close immediate
-func (s *ServiceBase) SendClose(dst SID, isForce bool) {
+func (s *ServiceBase) SendClose(dst SvcId, isForce bool) {
 	sendNoEnc(s.getId(), dst, MSG_TYPE_CLOSE, 0, Cmd_None, isForce)
 }
 
 // Request send a request msg to dst, and Start timeout function if timeout > 0, millisecond
 // after receiver call Respond, the responseCb will be called
-func (s *ServiceBase) Request(dst SID, encType EncType, timeout int, responseCb interface{}, cmd CmdType, data ...interface{}) {
+func (s *ServiceBase) Request(dst SvcId, encType EncType, timeout int, responseCb interface{}, cmd CmdType, data ...interface{}) {
 	s.request(dst, encType, timeout, responseCb, cmd, data...)
 }
 
 // Respond used to respond request msg
-func (s *ServiceBase) Respond(dst SID, encType EncType, rid uint64, data ...interface{}) {
+func (s *ServiceBase) Respond(dst SvcId, encType EncType, rid uint64, data ...interface{}) {
 	s.respond(dst, encType, rid, data...)
 }
 
 // Call send a call msg to dst, and Start a timeout function with the conf.CallTimeOut
 // after receiver call Ret, it will return
-func (s *ServiceBase) Call(dst SID, encType EncType, cmd CmdType, data ...interface{}) ([]interface{}, error) {
+func (s *ServiceBase) Call(dst SvcId, encType EncType, cmd CmdType, data ...interface{}) ([]interface{}, error) {
 	return s.call(dst, encType, cmd, data...)
 }
 
 // CallWithTimeout send a call msg to dst, and Start a timeout function with the timeout millisecond
 // after receiver call Ret, it will return
-func (s *ServiceBase) CallWithTimeout(dst SID, encType EncType, timeout int, cmd CmdType, data ...interface{}) ([]interface{}, error) {
+func (s *ServiceBase) CallWithTimeout(dst SvcId, encType EncType, timeout int, cmd CmdType, data ...interface{}) ([]interface{}, error) {
 	return s.callWithTimeout(dst, encType, timeout, cmd, data...)
 }
 
@@ -450,7 +450,7 @@ func (s *ServiceBase) Schedule(interval, repeat int, cb timer.TimerCallback) *ti
 }
 
 // Ret used to ret call msg
-func (s *ServiceBase) Ret(dst SID, encType EncType, cid uint64, data ...interface{}) {
+func (s *ServiceBase) Ret(dst SvcId, encType EncType, cid uint64, data ...interface{}) {
 	s.ret(dst, encType, cid, data...)
 }
 

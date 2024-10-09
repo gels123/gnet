@@ -10,15 +10,15 @@ import (
 
 // 服务管理器
 type serviceMgr struct {
-	dictId   sync.Map // ID-服务字典
-	dictName sync.Map // 名称-服务字典
+	dictId   sync.Map // ID-服务map
+	dictName sync.Map // 名称-服务map
 	nodeId   uint64   // 集群节点ID
 	curId    uint64   // 当前服务ID
 }
 
 var (
-	mgr *serviceMgr    // 服务管理器实例
-	wg  sync.WaitGroup // wg
+	mgr *serviceMgr // 服务管理器实例
+	wg  sync.WaitGroup
 )
 
 func newServiceMgr() *serviceMgr {
@@ -27,12 +27,12 @@ func newServiceMgr() *serviceMgr {
 		logzap.Panic("newServiceMgr error")
 	}
 	mgr.nodeId = uint64(conf.NodeID)
-	mgr.curId = uint64(SERVICE_ID_MIN)
+	mgr.curId = uint64(MIN_SRC_ID)
 	return mgr
 }
 
 // 是否本地服务
-func isLocalSid(sid SID) bool {
+func isLocalSid(sid SvcId) bool {
 	nodeId := sid.NodeId()
 	if nodeId == mgr.nodeId {
 		return true
@@ -52,7 +52,7 @@ func isLocalName(name string) bool {
 }
 
 // 注册服务
-func registService(s *ServiceBase) SID {
+func registService(s *ServiceBase) SvcId {
 	v, ok := mgr.dictName.Load(s.GetName())
 	if ok && v != nil {
 		logzap.Panicw("registService error: name exist", "name=", s.GetName())
@@ -64,7 +64,7 @@ func registService(s *ServiceBase) SID {
 	id = mgr.nodeId<<NODE_ID_OFF | id
 	mgr.dictId.Store(id, s)
 	mgr.dictName.Store(s.GetName(), s)
-	sid := SID(id)
+	sid := SvcId(id)
 	s.setId(sid)
 	wg.Add(1)
 	return sid
@@ -85,7 +85,7 @@ func unregistService(s *ServiceBase) {
 }
 
 // 根据id查找本地服务
-func findServiceById(sid SID) (s *ServiceBase, err error) {
+func findServiceById(sid SvcId) (s *ServiceBase, err error) {
 	id := uint64(sid)
 	v, ok := mgr.dictId.Load(id)
 	if !ok {

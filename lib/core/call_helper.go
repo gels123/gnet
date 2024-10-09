@@ -81,7 +81,7 @@ func (c *CallHelper) findCallbackDesc(cmd CmdType) *callbackDesc {
 }
 
 // Call invoke special function for cmd
-func (c *CallHelper) Call(cmd CmdType, src SID, param ...interface{}) []interface{} {
+func (c *CallHelper) Call(cmd CmdType, src SvcId, param ...interface{}) []interface{} {
 	defer func() {
 		if err := recover(); err != nil {
 			logzap.Errorw("CallHelper.Call error", "serviceName", c.serviceName, "cmd", cmd, "err", err)
@@ -104,7 +104,7 @@ func (c *CallHelper) Call(cmd CmdType, src SID, param ...interface{}) []interfac
 }
 
 // CallWithReplyFunc invoke special function for cmd with a reply function which is used to reply Call or Request.
-func (c *CallHelper) CallWithReplyFunc(cmd CmdType, src SID, replyFunc ReplyFunc, param ...interface{}) {
+func (c *CallHelper) CallWithReplyFunc(cmd CmdType, src SvcId, replyFunc ReplyFunc, param ...interface{}) {
 	defer func() {
 		if err := recover(); err != nil {
 			logzap.Errorw("CallHelper.Call error", "serviceName", c.serviceName, "cmd", cmd, "err", err)
