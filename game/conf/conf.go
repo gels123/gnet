@@ -28,7 +28,7 @@ var (
 	// 是否开启后门
 	BackDoor = true
 	// redis配置
-	RedisConf = stRedisConf{
+	RedisConf = stRedisConf {
 		Host: "172.16.10.200",
 		Port: 6379,
 		Db:   1,
@@ -36,7 +36,7 @@ var (
 		Inst: 8,
 	}
 	// 日志配置
-	LogsConf = stLogsConf{
+	LogsConf = stLogsConf {
 		FileDir:  "./log",
 		FileName: "gamelog",
 		MaxSize:  512000000,
