@@ -1,3 +1,6 @@
+/*
+ * 服务相关定义
+ */
 package core
 
 // 服务ID规则配置（高16位为集群节点ID, 低48位为服务ID）
@@ -7,30 +10,30 @@ const (
 	NODE_ID_MASK         = 0xFFFF << NODE_ID_OFF
 	INVALID_SRC_ID       = NODE_ID_MASK
 	MASTER_NODE_ID       = 0
-	MIN_SRC_ID     SvcId = 10
+	MIN_SRC_ID SID 	 	 = 10
 )
 
 // 服务ID定义(高16位为节点ID,低48位为服务ID)
-type SvcId uint64
+type SID uint64
 
 // 集群节点ID
-func (id SvcId) NodeId() uint64 {
-	return (uint64(id) & NODE_ID_MASK) >> NODE_ID_OFF
+func (sid SID) NodeId() uint64 {
+	return (uint64(sid) & NODE_ID_MASK) >> NODE_ID_OFF
 }
 
 // 服务ID
-func (id SvcId) BaseId() uint64 {
-	return uint64(id) & (^uint64(NODE_ID_MASK))
+func (sid SID) BaseId() uint64 {
+	return uint64(sid) & (^uint64(NODE_ID_MASK))
 }
 
 // 是否合法
-func (id SvcId) Valid() bool {
-	return !(id == INVALID_SRC_ID || id == 0)
+func (sid SID) Valid() bool {
+	return !(sid == INVALID_SRC_ID || sid == 0)
 }
 
 // 是否不合法
-func (id SvcId) Invalid() bool {
-	return id == INVALID_SRC_ID || id == 0
+func (sid SID) Invalid() bool {
+	return sid == INVALID_SRC_ID || sid == 0
 }
 
 const (
@@ -51,42 +54,23 @@ const (
 )
 
 /*
-const (
-
-	MSG_TYPE_NORMAL = iota
-	MSG_TYPE_REQUEST
-	MSG_TYPE_RESPOND
-	MSG_TYPE_TIMEOUT
-	MSG_TYPE_CALL
-	MSG_TYPE_RET
-	MSG_TYPE_CLOSE
-	MSG_TYPE_SOCKET
-	MSG_TYPE_ERR
-	MSG_TYPE_DISTRIBUTE
-
-)
+消息类型
 */
 const (
-	MSG_TYPE_NORMAL     MsgType = "MsgType.Normal"
-	MSG_TYPE_REQUEST    MsgType = "MsgType.Request"
-	MSG_TYPE_RESPOND    MsgType = "MsgType.Respond"
-	MSG_TYPE_TIMEOUT    MsgType = "MsgType.TimeOut"
-	MSG_TYPE_CALL       MsgType = "MsgType.Call"
-	MSG_TYPE_RET        MsgType = "MsgType.Ret"
-	MSG_TYPE_CLOSE      MsgType = "MsgType.Close"
-	MSG_TYPE_SOCKET     MsgType = "MsgType.Socket"
-	MSG_TYPE_ERR        MsgType = "MsgType.Error"
-	MSG_TYPE_DISTRIBUTE MsgType = "MsgType.Distribute"
+	MSG_TYPE_NORMAL     MsgType = "Msg.Normal"
+	MSG_TYPE_REQUEST    MsgType = "Msg.Request"
+	MSG_TYPE_RESPOND    MsgType = "Msg.Respond"
+	MSG_TYPE_TIMEOUT    MsgType = "Msg.TimeOut"
+	MSG_TYPE_CALL       MsgType = "Msg.Call"
+	MSG_TYPE_RET        MsgType = "Msg.Ret"
+	MSG_TYPE_CLOSE      MsgType = "Msg.Close"
+	MSG_TYPE_SOCKET     MsgType = "Msg.Socket"
+	MSG_TYPE_ERR        MsgType = "Msg.Error"
+	MSG_TYPE_DISTRIBUTE MsgType = "Msg.Distribute"
 )
 
 /*
-消息编码类型定义
-const (
-
-	MSG_ENC_TYPE_NIL = iota
-	MSG_ENC_TYPE_GOB
-
-)
+消息编码类型
 */
 const (
 	MSG_ENC_TYPE_NIL EncType = "nil"

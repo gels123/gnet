@@ -57,21 +57,21 @@ func PrintArgListForFunc(f reflect.Value) {
 }
 
 // Parse Node Id parse node sid from service sid
-func ParseNodeId(id SvcId) uint64 {
+func ParseNodeId(id SID) uint64 {
 	return id.NodeId()
 }
 
 // Send send a message to dst service no src service.
-func Send(dst SvcId, msgType MsgType, encType EncType, cmd CmdType, data ...interface{}) error {
-	return lowLevelSend(INVALID_SRC_ID, dst, msgType, encType, 0, cmd, data...)
+func Send(dst SID, msgType MsgType, encType EncType, cmd CmdType, data ...interface{}) error {
+	return _send(INVALID_SRC_ID, dst, msgType, encType, 0, cmd, data...)
 }
 
 // SendCloseToAll simple send a close msg to all service
 func SendCloseToAll() {
 	mgr.dicMutex.Lock()
 	defer mgr.dicMutex.Unlock()
-	for _, ser := range mgr.dictId {
-		localSendWithoutMutex(INVALID_SRC_ID, ser, MSG_TYPE_CLOSE, MSG_ENC_TYPE_NO, 0, Cmd_None, false)
+	for _, ser := range mgr.idDict {
+		sendLocal(INVALID_SRC_ID, ser, MSG_TYPE_CLOSE, MSG_ENC_TYPE_NO, 0, Cmd_None, false)
 	}
 }
 
@@ -100,10 +100,10 @@ func RefreshSlaveWhiteIPList(ips []string) {
 
 // Wait wait on a sync.WaitGroup, until all service is closed.
 func Wait() {
-	wg.Wait()
+	mgr.group.Wait()
 }
 
 // CheckIsLocalServiceId heck a given service sid is a local service
-func CheckIsLocalServiceId(id SvcId) bool {
+func CheckIsLocalServiceId(id SID) bool {
 	return isLocalSid(id)
 }

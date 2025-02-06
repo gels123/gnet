@@ -5,19 +5,19 @@ import (
 	"gnet/lib/logzap"
 )
 
-type TimerCallback func(int)
+type TimerCbFunc func(uint64)
 
 type Timer struct {
-	interval  int           // 时间间隔(毫秒ms)
-	elapsed   int           // 时间流逝(毫秒ms)
-	repeat    int           // 重复次数 <0永久重复
+	interval  uint64        // 时间间隔(毫秒ms)
+	elapsed   uint64        // 时间流逝(毫秒ms)
+	repeat    int        	// 重复次数 <0永久重复
 	repeated  int           // 已重复次数
 	forever   bool          // 是否永久重复
 	completed bool          // 是否已完成
-	cb        TimerCallback // 回调函数
+	cb        TimerCbFunc   // 回调函数
 }
 
-func NewTimer(interval, repeat int, cb TimerCallback) *Timer {
+func NewTimer(interval uint64, repeat int, cb TimerCbFunc) *Timer {
 	if interval <= 0 {
 		panic("NewTimer: interval is negative or zero.")
 	}
@@ -29,14 +29,15 @@ func NewTimer(interval, repeat int, cb TimerCallback) *Timer {
 	t.forever = (t.repeat < 0)
 	t.completed = false
 	t.cb = cb
+	
 	return t
 }
 
-func (t *Timer) update(d int) {
+func (t *Timer) update(du uint64) {
 	if t.completed {
 		return
 	}
-	t.elapsed += d
+	t.elapsed += du
 	if t.elapsed < t.interval {
 		return
 	}
@@ -69,6 +70,7 @@ func (t *Timer) Reset() error {
 	}
 	t.elapsed = 0
 	t.repeated = 0
+	
 	return nil
 }
 

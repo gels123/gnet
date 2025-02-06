@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"gnet/lib/core"
+	"gnet/lib/logsimple"
 	"gnet/lib/utils"
 	"net"
 	"time"
@@ -116,7 +117,7 @@ func (c *Client) onSend(src core.sid, param ...interface{}) {
 }
 
 func (c *Client) OnNormalMSG(msg *core.Message) {
-	src := msg.Src
+	src := msg.From
 	cmd := msg.Cmd
 	param := msg.Data
 	switch cmd {

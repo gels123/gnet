@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"gnet/lib/utils"
 	"regexp"
 	"runtime/debug"
 	"time"
@@ -35,38 +36,54 @@ func gg() {
 	time.AfterFunc(t2.Sub(t1), gg)
 }
 
-// func main() {
-// 	fmt.Println("===main begin===" + utils.GetExeDir())
+type ITest interface {
+	Print()
+}
 
-// 	// logOut := filepath.Join(utils.GetCurDir(), conf.LogsConf.FileDir, conf.LogsConf.FileName)
-// 	// fmt.Println("===================df===", logOut)
-// 	// fmt.Println("===================xxx===", conf.LogsConf.FileDir[0] == '.')
+type Test struct {
+	ITest
+	num int 
+}
 
-// 	// time.AfterFunc(time.Second*10, func() {
-// 	// 	fmt.Println("==============sdfadfadfa===============")
-// 	// })
+func (t *Test) Print1() {
+	fmt.Println("===Test Print===", t.num)
+}
 
-// 	// go aa()
+func main() {
+	fmt.Println("===main begin===" + utils.GetExeDir())
 
-// 	// logzap.SetSource("gelsxxx")
-// 	// logzap.Panic("dffffffffffffffffff")
-// 	logzap.Infow("========sdfadf===", "num=", 100)
-// 	// logzap.Error("========sdfadf===", zap.String("nnnn", "nihao"))
-// 	// for {
-// 	// 	//logzap.Debugw("=sdfadf=", "num=", 100)
-// 	// 	//logzap.Debugf("========sdfadf===", "a=", 100)
-// 	// 	time.Sleep(time.Second)
-// 	// }
+	test := Test{num: 100}
+	test.Print1()
 
-// 	// queue := lockfreequeue.NewQueue(1024 * 1024)
-// 	// queue.Put(100)
-// 	// queue.Put(200)
-// 	// queue.Put(300)
-// 	// queue.Put(400)
-// 	// queue.Put(500)
-// 	// queue.Put(600)
-// 	// cell, _, _ := queue.Get()
-// 	// var isok bool = true
-// 	// fmt.Println("-------", cell, !isok)
+	// logOut := filepath.Join(utils.GetCurDir(), conf.LogsConf.FileDir, conf.LogsConf.FileName)
+	// fmt.Println("===================df===", logOut)
+	// fmt.Println("===================xxx===", conf.LogsConf.FileDir[0] == '.')
 
-// }
+	// time.AfterFunc(time.Second*10, func() {
+	// 	fmt.Println("==============sdfadfadfa===============")
+	// })
+
+	// go aa()
+
+	// logzap.SetSource("gelsxxx")
+	// logzap.Panic("dffffffffffffffffff")
+	// logzap.Infow("========sdfadf===", "num=", 100)
+	// logzap.Error("========sdfadf===", zap.String("nnnn", "nihao"))
+	// for {
+	// 	//logzap.Debugw("=sdfadf=", "num=", 100)
+	// 	//logzap.Debugf("========sdfadf===", "a=", 100)
+	// 	time.Sleep(time.Second)
+	// }
+
+	// queue := lockfreequeue.NewQueue(1024 * 1024)
+	// queue.Put(100)
+	// queue.Put(200)
+	// queue.Put(300)
+	// queue.Put(400)
+	// queue.Put(500)
+	// queue.Put(600)
+	// cell, _, _ := queue.Get()
+	// var isok bool = true
+	// fmt.Println("-------", cell, !isok)
+
+}

@@ -95,7 +95,7 @@ func (m *master) onGetIdByName(src core.sid, name string, rId uint) {
 
 func (m *master) OnSocketMSG(msg *core.Message) {
 	//src is slave's agent's serviceid
-	src := msg.Src
+	src := msg.From
 	//cmd is socket status
 	cmd := msg.Cmd
 	//data[0] is a gob encode with message

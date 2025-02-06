@@ -20,7 +20,7 @@ func (m *M) OnNormalMSG(msg *core.Message) {
 }
 
 func (m *M) OnSocketMSG(msg *core.Message) {
-	src := msg.Src
+	src := msg.From
 	cmd := msg.Cmd
 	data := msg.Data
 	if cmd == tcp.AGENT_DATA {

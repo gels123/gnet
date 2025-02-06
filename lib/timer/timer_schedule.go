@@ -3,9 +3,10 @@ package timer
 import (
 	"gnet/lib/logzap"
 	"gnet/lib/vector"
-	"go.uber.org/zap"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // 计时器
@@ -14,8 +15,8 @@ type TimerSchedule struct {
 	addCache *vector.Vector
 	delCache *vector.Vector
 	started  bool         // 是否已经启动
+	tick     uint64       // 间隔(毫秒ms)
 	ticker   *time.Ticker //
-	tick     int          // 间隔(毫秒ms)
 	mutex    sync.Mutex
 }
 
@@ -25,17 +26,17 @@ func NewTimerSchedule() *TimerSchedule {
 	ts.addCache = vector.New()
 	ts.delCache = vector.New()
 	ts.started = false
-	ts.ticker = nil
 	ts.tick = 1000 // 默认tick为1秒=1000ms
+	ts.ticker = nil
 	return ts
 }
 
 // 设置间隔(毫秒ms)
-func (ts *TimerSchedule) SetTick(tick int) {
+func (ts *TimerSchedule) SetTick(tick uint64) {
 	if !ts.started && tick > 0 {
 		ts.tick = tick
 	} else {
-		logzap.Error("timerschedule set tick error", zap.Int("tick", tick))
+		logzap.Error("timerschedule set tick error", zap.Uint64("tick", tick))
 	}
 }
 
@@ -67,7 +68,7 @@ func (ts *TimerSchedule) Stop() {
 }
 
 // Update all timers
-func (ts *TimerSchedule) Update(d int) {
+func (ts *TimerSchedule) Update(du uint64) {
 	ts.mutex.Lock()
 	if ts.addCache.Len() > 0 {
 		ts.timers.AppendVec(ts.addCache)
@@ -76,7 +77,7 @@ func (ts *TimerSchedule) Update(d int) {
 	ts.mutex.Unlock()
 	for i := 0; i < ts.timers.Len(); i++ {
 		t := ts.timers.At(i).(*Timer)
-		t.update(d)
+		t.update(du)
 		if t.Completed() {
 			ts.UnSchedule(t)
 		}
@@ -98,7 +99,7 @@ func (ts *TimerSchedule) Update(d int) {
 // 启动一个倒计时
 // @interval 时间间隔(毫秒ms)
 // @repeat 重复次数 -1=永久重复
-func (ts *TimerSchedule) Schedule(interval, repeat int, cb TimerCallback) *Timer {
+func (ts *TimerSchedule) Schedule(interval uint64, repeat int, cb TimerCbFunc) *Timer {
 	if repeat == 0 {
 		repeat = 1
 	}

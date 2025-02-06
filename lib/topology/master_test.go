@@ -12,10 +12,10 @@ type Game struct {
 }
 
 func (g *Game) OnRequestMSG(msg *core.Message) {
-	g.Respond(msg.Src, core.MSG_ENC_TYPE_GOB, msg.Id, "world")
+	g.Respond(msg.From, core.MSG_ENC_TYPE_GOB, msg.Id, "world")
 }
 func (g *Game) OnCallMSG(msg *core.Message) {
-	g.Ret(msg.Src, core.MSG_ENC_TYPE_GOB, msg.Id, "world")
+	g.Ret(msg.From, core.MSG_ENC_TYPE_GOB, msg.Id, "world")
 }
 
 func (g *Game) OnNormalMSG(msg *core.Message) {
