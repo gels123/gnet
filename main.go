@@ -49,11 +49,17 @@ func (t *Test) Print1() {
 	fmt.Println("===Test Print===", t.num)
 }
 
+func PanicWhen2(b bool, s string) {
+	if b {
+		panic(s)
+	}
+}
+
 func main() {
 	fmt.Println("===main begin===" + utils.GetExeDir())
 
-	test := Test{num: 100}
-	test.Print1()
+	// test := Test{num: 100}
+	// test.Print1()
 
 	// logOut := filepath.Join(utils.GetCurDir(), conf.LogsConf.FileDir, conf.LogsConf.FileName)
 	// fmt.Println("===================df===", logOut)
@@ -85,5 +91,8 @@ func main() {
 	// cell, _, _ := queue.Get()
 	// var isok bool = true
 	// fmt.Println("-------", cell, !isok)
+
+
+	fmt.Println("====main end===")
 
 }

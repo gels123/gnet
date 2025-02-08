@@ -23,8 +23,7 @@ func init() {
 
 func PanicWhen(b bool, s string) {
 	if b {
-		// panic(s)
-		logzap.Panic(s)
+		logzap.Panic(s) // panic(s)
 	}
 }
 

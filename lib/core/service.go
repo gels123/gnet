@@ -54,15 +54,16 @@ type ServiceBase struct {
 	tick              uint64                        // 间隔(毫秒ms)
 	ts                *timer.TimerSchedule          // 计时器
 
-	reqId             uint64                        //
-	requestMap        map[uint64]requestCB          //
-	requestMutex      sync.Mutex                    //
+	reqId             uint64                        // request session id
+	requestMap        map[uint64]requestCB          // request session id -> requestCB
+	requestMutex      sync.Mutex                    // request mutex
 	callId            uint64                        //
 	callChanMap       map[uint64]chan []interface{} //
 	callMutex         sync.Mutex                    //
 	normalDispatcher  *CallHelper                   //
 	requestDispatcher *CallHelper                   //
 	callDispatcher    *CallHelper                   //
+	started           bool                          // 是否已启动
 }
 
 type requestCB struct {
@@ -138,6 +139,11 @@ func (s *ServiceBase) OnDestroy() {
 // 启动服务
 // @tick  计时器间隔, 大于0时启动计时器
 func (s *ServiceBase) Start(tick uint64) {
+	if s.started {
+		logzap.Errorw("service started yet", "service", s.GetName())
+		return
+	}
+	s.started = true
 	s.tick = tick
 	if s.tick > 0 {
 		if s.ts == nil {
@@ -146,27 +152,28 @@ func (s *ServiceBase) Start(tick uint64) {
 			s.ts.Start()
 		}
 	}
-	utils.SafeGo(s.loop)
+	go s.loop()
 }
 
 // 循环分发消息
 func (s *ServiceBase) loop() {
 	// 初始化
 	s.OnInit()
-	// 循环分发消息
+	// 循环接收-分发消息
 	for {
-		if !s.loopSelect() {
+		if !s.receiveMsg() {
 			break
 		}
 	}
+	// 销毁
 	s.OnDestroy()
 }
 
-// 分发消息
-func (s *ServiceBase) loopSelect() bool {
+// 接收-分发消息
+func (s *ServiceBase) receiveMsg() bool {
 	defer func() {
 		if err := recover(); err != nil {
-			logzap.Errorw("service error", "service", s.GetName(), "stack", utils.GetStack())
+			logzap.Errorw("service receive msg error", "service", s.GetName(), "stack", utils.GetStack())
 		}
 	}()
 	select {
@@ -174,7 +181,7 @@ func (s *ServiceBase) loopSelect() bool {
 		if !ok {
 			return false
 		}
-		ok = s.dispatchMSG(msg)
+		ok = s.dispatchMsg(msg)
 		if !ok {
 			return false
 		}
@@ -182,21 +189,8 @@ func (s *ServiceBase) loopSelect() bool {
 	return true
 }
 
-// 压入消息
-func (s *ServiceBase) pushMsg(msg *Message) {
-	select {
-	case s.msgChan <- msg:
-	default:
-		if s.msgChan == nil {
-			logzap.Warnw("service pushMsg error: chan is nil", "service", s.GetName(), "stack", utils.GetStack())
-		} else {
-			logzap.Warnw("service pushMsg error: chan is full", "service", s.GetName(), "stack", utils.GetStack())
-		}
-	}
-}
-
 // 分发消息
-func (s *ServiceBase) dispatchMSG(msg *Message) bool {
+func (s *ServiceBase) dispatchMsg(msg *Message) bool {
 	if msg.EncType == MSG_ENC_TYPE_GOB {
 		t, err := gob.Unpack(msg.Data[0].([]byte))
 		if err != nil {
@@ -228,16 +222,30 @@ func (s *ServiceBase) dispatchMSG(msg *Message) bool {
 	return true
 }
 
+// 压入消息
+func (s *ServiceBase) pushMsg(msg *Message) {
+	select {
+	case s.msgChan <- msg:
+	default:
+		if s.msgChan == nil {
+			logzap.Warnw("service pushMsg error: chan is nil", "service", s.GetName(), "stack", utils.GetStack())
+		} else {
+			logzap.Warnw("service pushMsg error: chan is full", "service", s.GetName(), "stack", utils.GetStack())
+		}
+	}
+}
+
 // respndCb is a function like: func(isok bool, ...interface{})  the first param must be a bool
 func (s *ServiceBase) request(dst SID, encType EncType, timeout int, respondCb interface{}, cmd CmdType, data ...interface{}) {
 	s.requestMutex.Lock()
-	id := s.reqId
 	s.reqId++
+	id := s.reqId
 	cbp := requestCB{reflect.ValueOf(respondCb)}
 	s.requestMap[id] = cbp
 	s.requestMutex.Unlock()
-	utils.PanicWhen(cbp.respond.Kind() != reflect.Func, "respond cb must function.")
 
+	utils.PanicWhen(cbp.respond.Kind() != reflect.Func, "respond cb must function")
+	
 	_send(s.GetId(), dst, MSG_TYPE_REQUEST, encType, id, cmd, data...)
 
 	if timeout > 0 {
@@ -246,7 +254,7 @@ func (s *ServiceBase) request(dst SID, encType EncType, timeout int, respondCb i
 			_, ok := s.requestMap[id]
 			s.requestMutex.Unlock()
 			if ok {
-				_send(INVALID_SRC_ID, s.getId(), MSG_TYPE_TIMEOUT, MSG_ENC_TYPE_NO, id, Cmd_None)
+				_send(INVALID_SRC_ID, s.GetId(), MSG_TYPE_TIMEOUT, MSG_ENC_TYPE_NIL, id, Cmd_None)
 			}
 		})
 	}
@@ -273,7 +281,7 @@ func (s *ServiceBase) dispatchRequest(msg *Message) {
 }
 
 func (s *ServiceBase) respond(dst SID, encType EncType, rid uint64, data ...interface{}) {
-	_send(s.getId(), dst, MSG_TYPE_RESPOND, encType, rid, Cmd_None, data...)
+	_send(s.GetId(), dst, MSG_TYPE_RESPOND, encType, rid, Cmd_None, data...)
 }
 
 // return request callback by request sid
@@ -304,7 +312,7 @@ func (s *ServiceBase) dispatchRespond(m *Message) {
 }
 
 func (s *ServiceBase) call(dst SID, encType EncType, cmd CmdType, data ...interface{}) ([]interface{}, error) {
-	utils.PanicWhen(dst == s.getId(), "dst must equal to s's sid")
+	utils.PanicWhen(dst == s.GetId(), "dst must equal to s's sid")
 	s.callMutex.Lock()
 	id := s.callId
 	s.callId++
@@ -315,7 +323,7 @@ func (s *ServiceBase) call(dst SID, encType EncType, cmd CmdType, data ...interf
 	s.callMutex.Lock()
 	s.callChanMap[id] = ch
 	s.callMutex.Unlock()
-	if err := _send(s.getId(), dst, MSG_TYPE_CALL, encType, id, cmd, data...); err != nil {
+	if err := _send(s.GetId(), dst, MSG_TYPE_CALL, encType, id, cmd, data...); err != nil {
 		return nil, err
 	}
 	if conf.CallTimeOut > 0 {
@@ -336,7 +344,7 @@ func (s *ServiceBase) call(dst SID, encType EncType, cmd CmdType, data ...interf
 }
 
 func (s *ServiceBase) callWithTimeout(dst SID, encType EncType, timeout int, cmd CmdType, data ...interface{}) ([]interface{}, error) {
-	utils.PanicWhen(dst == s.getId(), "dst must equal to s's sid")
+	utils.PanicWhen(dst == s.GetId(), "dst must equal to s's sid")
 	s.callMutex.Lock()
 	id := s.callId
 	s.callId++
@@ -347,7 +355,7 @@ func (s *ServiceBase) callWithTimeout(dst SID, encType EncType, timeout int, cmd
 	s.callMutex.Lock()
 	s.callChanMap[id] = ch
 	s.callMutex.Unlock()
-	if err := _send(s.getId(), dst, MSG_TYPE_CALL, encType, id, cmd, data...); err != nil {
+	if err := _send(s.GetId(), dst, MSG_TYPE_CALL, encType, id, cmd, data...); err != nil {
 		return nil, err
 	}
 	if timeout > 0 {
@@ -375,7 +383,7 @@ func (s *ServiceBase) ret(dst SID, encType EncType, cid uint64, data ...interfac
 	var dstService *ServiceBase
 	dstService, err := findServiceById(dst)
 	if err != nil {
-		_send(s.getId(), dst, MSG_TYPE_RET, encType, cid, Cmd_None, data...)
+		_send(s.GetId(), dst, MSG_TYPE_RET, encType, cid, Cmd_None, data...)
 		return
 	}
 	dstService.dispatchRet(cid, data...)
@@ -395,8 +403,9 @@ func (s *ServiceBase) dispatchRet(cid uint64, data ...interface{}) {
 	}
 }
 
-func (s *ServiceBase) schedule(interval, repeat int, cb timer.TimerCbFunc) *timer.Timer {
-	utils.PanicWhen(s.tick <= 0, "loopDuraton must greater than zero.")
+// 添加计时器
+func (s *ServiceBase) schedule(interval uint64, repeat int, cb timer.TimerCbFunc) *timer.Timer {
+	utils.PanicWhen(s.tick <= 0, "service schedule error: tick <= 0")
 	return s.ts.Schedule(interval, repeat, cb)
 }
 
@@ -410,20 +419,20 @@ func (s *ServiceBase) OnModuleStartup(sid SID, serviceName string) {
 
 // Send消息
 func (s *ServiceBase) Send(addr SID, msgType MsgType, encType EncType, cmd CmdType, data ...interface{}) {
-	_send(s.getId(), addr, msgType, encType, 0, cmd, data...)
+	_send(s.GetId(), addr, msgType, encType, 0, cmd, data...)
 }
 
 // RawSend not encode variables, be careful use
 // variables that passed by reference may be changed by others
 func (s *ServiceBase) RawSend(dst SID, msgType MsgType, cmd CmdType, data ...interface{}) {
-	sendRaw(s.getId(), dst, msgType, 0, cmd, data...)
+	sendRaw(s.GetId(), dst, msgType, 0, cmd, data...)
 }
 
 // if isForce is false, then it will just notify the sevice it need to close
 // then service can do choose close immediate or close after self clean.
 // if isForce is true, then it close immediate
 func (s *ServiceBase) SendClose(dst SID, isForce bool) {
-	sendRaw(s.getId(), dst, MSG_TYPE_CLOSE, 0, Cmd_None, isForce)
+	sendRaw(s.GetId(), dst, MSG_TYPE_CLOSE, 0, Cmd_None, isForce)
 }
 
 // Request send a request msg to dst, and Start timeout function if timeout > 0, millisecond
@@ -467,30 +476,32 @@ func (s *ServiceBase) OnMainLoop(dt int) {
 
 // 分发普通消息
 func (s *ServiceBase) OnNormalMSG(msg *Message) {
-	s.normalDispatcher.Call(msg.Cmd, msg.From, msg.Data...)
+	s.normalDispatcher.Call(msg.Cmd, msg.Src, msg.Data...)
 }
 
 func (s *ServiceBase) OnSocketMSG(msg *Message) {
 }
+
 func (s *ServiceBase) OnRequestMSG(msg *Message) {
 	isAutoReply := s.requestDispatcher.getIsAutoReply(msg.Cmd)
 	if isAutoReply { //if auto reply is set, auto respond when user's callback is return.
-		ret := s.requestDispatcher.Call(msg.Cmd, msg.From, msg.Data...)
-		s.Respond(msg.From, msg.EncType, msg.Id, ret...)
+		ret := s.requestDispatcher.Call(msg.Cmd, msg.Src, msg.Data...)
+		s.Respond(msg.Src, msg.EncType, msg.Id, ret...)
 	} else { //pass a closure to the user's callback, when to call depends on the user.
-		s.requestDispatcher.CallWithReplyFunc(msg.Cmd, msg.From, func(ret ...interface{}) {
-			s.Respond(msg.From, msg.EncType, msg.Id, ret...)
+		s.requestDispatcher.CallWithReplyFunc(msg.Cmd, msg.Src, func(ret ...interface{}) {
+			s.Respond(msg.Src, msg.EncType, msg.Id, ret...)
 		}, msg.Data...)
 	}
 }
+
 func (s *ServiceBase) OnCallMSG(msg *Message) {
 	isAutoReply := s.callDispatcher.getIsAutoReply(msg.Cmd)
 	if isAutoReply {
-		ret := s.callDispatcher.Call(msg.Cmd, msg.From, msg.Data...)
-		s.Ret(msg.From, msg.EncType, msg.Id, ret...)
+		ret := s.callDispatcher.Call(msg.Cmd, msg.Src, msg.Data...)
+		s.Ret(msg.Src, msg.EncType, msg.Id, ret...)
 	} else {
-		s.callDispatcher.CallWithReplyFunc(msg.Cmd, msg.From, func(ret ...interface{}) {
-			s.Ret(msg.From, msg.EncType, msg.Id, ret...)
+		s.callDispatcher.CallWithReplyFunc(msg.Cmd, msg.Src, func(ret ...interface{}) {
+			s.Ret(msg.Src, msg.EncType, msg.Id, ret...)
 		}, msg.Data...)
 	}
 }
@@ -530,5 +541,5 @@ func (s *ServiceBase) OnDistributeMSG(msg *Message) {
 }
 
 func (s *ServiceBase) OnCloseNotify() {
-	s.SendClose(s.getId(), true)
+	s.SendClose(s.GetId(), true)
 }

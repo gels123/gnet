@@ -36,21 +36,24 @@ func (sid SID) Invalid() bool {
 	return sid == INVALID_SRC_ID || sid == 0
 }
 
+/*
+指令类型
+*/
 const (
-	Cmd_None                    CmdType = "CmdType.Core.None"
-	Cmd_Forward                 CmdType = "CmdType.Core.Forward"
-	Cmd_Distribute              CmdType = "CmdType.Core.Distribute"
-	Cmd_RegisterNode            CmdType = "CmdType.Core.RegisterNode"
-	Cmd_RegisterNodeRet         CmdType = "CmdType.Core.RegisterNodeRet"
-	Cmd_RegisterName            CmdType = "CmdType.Core.RegisterName"
-	Cmd_GetIdByName             CmdType = "CmdType.Core.GetIdByName"
-	Cmd_GetIdByNameRet          CmdType = "CmdType.Core.GetIdByNameRet"
-	Cmd_NameAdd                 CmdType = "CmdType.Core.NameAdd"
-	Cmd_NameDeleted             CmdType = "CmdType.Core.NameDeleted"
-	Cmd_Exit                    CmdType = "CmdType.Core.Exit"
-	Cmd_Exit_Node               CmdType = "CmdType.Core.ExitNode"
-	Cmd_Default                 CmdType = "CmdType.Core.Default"
-	Cmd_RefreshSlaveWhiteIPList CmdType = "CmdType.Core.RefreshSlaveWhiteIPList"
+	Cmd_None                    CmdType = "CmdType.None"
+	Cmd_Forward                 CmdType = "CmdType.Forward"
+	Cmd_Distribute              CmdType = "CmdType.Distribute"
+	Cmd_RegisterNode            CmdType = "CmdType.RegisterNode"
+	Cmd_RegisterNodeRet         CmdType = "CmdType.RegisterNodeRet"
+	Cmd_RegisterName            CmdType = "CmdType.RegisterName"
+	Cmd_GetIdByName             CmdType = "CmdType.GetIdByName"
+	Cmd_GetIdByNameRet          CmdType = "CmdType.GetIdByNameRet"
+	Cmd_NameAdd                 CmdType = "CmdType.NameAdd"
+	Cmd_NameDeleted             CmdType = "CmdType.NameDeleted"
+	Cmd_Exit                    CmdType = "CmdType.Exit"
+	Cmd_Exit_Node               CmdType = "CmdType.ExitNode"
+	Cmd_Default                 CmdType = "CmdType.Default"
+	Cmd_RefreshSlaveWhiteIPList CmdType = "CmdType.RefreshSlaveWhiteIPList"
 )
 
 /*
