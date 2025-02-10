@@ -459,7 +459,7 @@ func (s *ServiceBase) CallWithTimeout(dst SID, encType EncType, timeout int, cmd
 }
 
 // Schedule schedule a time with given parameter.
-func (s *ServiceBase) Schedule(interval, repeat int, cb timer.TimerCbFunc) *timer.Timer {
+func (s *ServiceBase) Schedule(interval uint64, repeat int, cb timer.TimerCbFunc) *timer.Timer {
 	if s == nil {
 		panic("Schedule must call after OnInit is called(not contain OnInit)")
 	}
