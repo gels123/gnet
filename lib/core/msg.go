@@ -43,7 +43,7 @@ func NewMessage(src, dst SID, msgType MsgType, encType EncType, id uint64, cmd C
 	return msg
 }
 
-func _send(src, dst SID, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
+func send(src, dst SID, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
 	isLocal := isLocalSid(dst)
 	service, err := findServiceById(dst)
 	//Local service not found
@@ -61,12 +61,8 @@ func _send(src, dst SID, msgType MsgType, encType EncType, id uint64, cmd CmdTyp
 	return nil
 }
 
-func send(src SID, dst SID, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
-	return _send(src, dst, msgType, encType, id, cmd, data...)
-}
-
 func sendRaw(src SID, dst SID, msgType MsgType, id uint64, cmd CmdType, data ...interface{}) error {
-	return _send(src, dst, msgType, MSG_ENC_TYPE_NIL, id, cmd, data...)
+	return send(src, dst, msgType, MSG_ENC_TYPE_NIL, id, cmd, data...)
 }
 
 func sendByName(src SID, dst string, msgType MsgType, encType EncType, id uint64, cmd CmdType, data ...interface{}) error {
@@ -74,7 +70,7 @@ func sendByName(src SID, dst string, msgType MsgType, encType EncType, id uint64
 	if err != nil {
 		return err
 	}
-	return _send(src, service.GetId(), msgType, encType, id, cmd, data...)
+	return send(src, service.GetId(), msgType, encType, id, cmd, data...)
 }
 
 // ForwardLocal forward the message to the specified local sevice.
@@ -107,7 +103,7 @@ func ForwardLocal(msg *Message) {
 func DistributeMSG(src SID, cmd CmdType, data ...interface{}) {
 	mgr.mutex.Lock()
 	defer mgr.mutex.Unlock()
-	for dst, s := range mgr.idDict {
+	for dst, s := range mgr.sidDict {
 		if SID(dst) != src {
 			sendLocal(src, s, MSG_TYPE_DISTRIBUTE, MSG_ENC_TYPE_NIL, 0, cmd, data...)
 		}

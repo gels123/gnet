@@ -1,7 +1,7 @@
 package core
 
 import (
-	"gnet/lib/logsimple"
+	"errors"
 	"gnet/lib/vector"
 	"sync"
 )
@@ -56,7 +56,7 @@ func RegisterNode(nodeName string) {
 			route(Cmd_RegisterNode, nodeName)
 			mgr.nodeId = <-registerNodeChan
 			worker, _ = NewIdWorker(int64(mgr.nodeId))
-			logsimple.Info("SlaveNode register ndoe success: NodeId: %v, nodeName: {%v}", mgr.nodeId, nodeName)
+			// logsimple.Info("SlaveNode register ndoe success: NodeId: %v, nodeName: {%v}", mgr.nodeId, nodeName)
 		}
 	})
 }
@@ -79,16 +79,16 @@ func route(cmd CmdType, data ...interface{}) bool {
 	if err != nil {
 		return false
 	}
-	sendLocal(INVALID_SRC_ID, router, MSG_TYPE_NORMAL, MSG_ENC_TYPE_NO, 0, cmd, data...)
+	sendLocal(INVALID_SRC_ID, router, MSG_TYPE_NORMAL, MSG_ENC_TYPE_NIL, 0, cmd, data...)
 	return true
 }
 
 // NameToId couldn't guarantee get the correct sid for name.
 // it will return err if the named server is until now.
 func NameToId(name string) (SID, error) {
-	ser, err := findServiceByName(name)
+	svr, err := findServiceByName(name)
 	if err == nil {
-		return ser.getId(), nil
+		return svr.GetId(), nil
 	}
 	if !isLocalName(name) {
 		nameMapMutex.Lock()
@@ -105,11 +105,11 @@ func NameToId(name string) (SID, error) {
 		ret := <-ch
 		close(ch)
 		if !ret.ok {
-			return INVALID_SRC_ID, ServiceNotFindError
+			return INVALID_SRC_ID, errors.New("service not find")
 		}
 		return ret.id, nil
 	}
-	return INVALID_SRC_ID, ServiceNotFindError
+	return INVALID_SRC_ID, errors.New("service not find")
 }
 
 func DispatchGetIdByNameRet(id SID, ok bool, name string, rid uint) {
@@ -133,7 +133,7 @@ func GenerateNodeId() uint64 {
 
 func CollectNodeId(recycledNodeID uint64) {
 	if recycledNodeID >= StartingNodeID {
-		logsimple.Info("Recycled of NodeID<%v>", recycledNodeID)
+		// logsimple.Info("Recycled of NodeID<%v>", recycledNodeID)
 		validNodeIdVec.Put(recycledNodeID)
 	}
 }

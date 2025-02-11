@@ -21,7 +21,7 @@ type stLogsConf struct {
 	MaxAge   time.Duration // 文件过期时长
 }
 
-// 相关配置
+// 服务相关配置
 var (
 	// 是否debug模式
 	Debug = true
@@ -44,6 +44,15 @@ var (
 	}
 	// 集群节点ID
 	NodeID = 1
+	// 服务配置
+	CoreIsStandalone bool     = false       //set system is a standalone or multinode
+	CoreIsMaster     bool     = true        //set node is master
+	MasterListenIp   string   = "127.0.0.1" //master listen ip
+	MultiNodePort    string   = "4000"      //master listen port
+	SlaveConnectIp   string   = "127.0.0.1" //master ip
+	SlaveWhiteIPList []string = []string{}  //slave white ip list
+	// Call调用超时时间(毫秒ms)
+	CallTimeOut = 5000
 )
 
 // 初始化

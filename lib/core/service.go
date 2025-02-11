@@ -5,7 +5,7 @@ package core
 
 import (
 	"errors"
-	"gnet/lib/conf"
+	"gnet/game/conf"
 	"gnet/lib/encoding/gob"
 	"gnet/lib/logzap"
 	"gnet/lib/timer"
@@ -39,9 +39,9 @@ type IService interface {
 
 // 服务参数项
 type ServiceOption struct {
-	name  string 	// 服务名称
-	msgSz uint64 	// 消息缓冲大小
-	tick  uint64    // 间隔(ms)
+	Name  string 	// 服务名称
+	MsgSz uint64 	// 消息缓冲大小
+	Tick  uint64    // 间隔(ms)
 }
 
 // 服务基类, 实现服务接口(IService)
@@ -73,16 +73,16 @@ type requestCB struct {
 
 // 创建新服务
 func NewService(opt ServiceOption) SID {
-	if len(opt.name) == 0 {
+	if len(opt.Name) == 0 {
 		panic("new service error: name invalid or repeat")
 	}
-	if opt.msgSz <= 1024 {
-		opt.msgSz = 1024
+	if opt.MsgSz <= 1024 {
+		opt.MsgSz = 1024
 	}
 	s := &ServiceBase {
-		name: opt.name,
+		name: opt.Name,
 		msgChan: nil,
-		msgSz: opt.msgSz,
+		msgSz: opt.MsgSz,
 		tick: 0,
 		ts: nil,
 
@@ -246,7 +246,7 @@ func (s *ServiceBase) request(dst SID, encType EncType, timeout int, respondCb i
 
 	utils.PanicWhen(cbp.respond.Kind() != reflect.Func, "respond cb must function")
 	
-	_send(s.GetId(), dst, MSG_TYPE_REQUEST, encType, id, cmd, data...)
+	send(s.GetId(), dst, MSG_TYPE_REQUEST, encType, id, cmd, data...)
 
 	if timeout > 0 {
 		time.AfterFunc(time.Duration(timeout)*time.Millisecond, func() {
@@ -254,7 +254,7 @@ func (s *ServiceBase) request(dst SID, encType EncType, timeout int, respondCb i
 			_, ok := s.requestMap[id]
 			s.requestMutex.Unlock()
 			if ok {
-				_send(INVALID_SRC_ID, s.GetId(), MSG_TYPE_TIMEOUT, MSG_ENC_TYPE_NIL, id, Cmd_None)
+				send(INVALID_SRC_ID, s.GetId(), MSG_TYPE_TIMEOUT, MSG_ENC_TYPE_NIL, id, Cmd_None)
 			}
 		})
 	}
@@ -281,7 +281,7 @@ func (s *ServiceBase) dispatchRequest(msg *Message) {
 }
 
 func (s *ServiceBase) respond(dst SID, encType EncType, rid uint64, data ...interface{}) {
-	_send(s.GetId(), dst, MSG_TYPE_RESPOND, encType, rid, Cmd_None, data...)
+	send(s.GetId(), dst, MSG_TYPE_RESPOND, encType, rid, Cmd_None, data...)
 }
 
 // return request callback by request sid
@@ -323,7 +323,7 @@ func (s *ServiceBase) call(dst SID, encType EncType, cmd CmdType, data ...interf
 	s.callMutex.Lock()
 	s.callChanMap[id] = ch
 	s.callMutex.Unlock()
-	if err := _send(s.GetId(), dst, MSG_TYPE_CALL, encType, id, cmd, data...); err != nil {
+	if err := send(s.GetId(), dst, MSG_TYPE_CALL, encType, id, cmd, data...); err != nil {
 		return nil, err
 	}
 	if conf.CallTimeOut > 0 {
@@ -355,7 +355,7 @@ func (s *ServiceBase) callWithTimeout(dst SID, encType EncType, timeout int, cmd
 	s.callMutex.Lock()
 	s.callChanMap[id] = ch
 	s.callMutex.Unlock()
-	if err := _send(s.GetId(), dst, MSG_TYPE_CALL, encType, id, cmd, data...); err != nil {
+	if err := send(s.GetId(), dst, MSG_TYPE_CALL, encType, id, cmd, data...); err != nil {
 		return nil, err
 	}
 	if timeout > 0 {
@@ -383,7 +383,7 @@ func (s *ServiceBase) ret(dst SID, encType EncType, cid uint64, data ...interfac
 	var dstService *ServiceBase
 	dstService, err := findServiceById(dst)
 	if err != nil {
-		_send(s.GetId(), dst, MSG_TYPE_RET, encType, cid, Cmd_None, data...)
+		send(s.GetId(), dst, MSG_TYPE_RET, encType, cid, Cmd_None, data...)
 		return
 	}
 	dstService.dispatchRet(cid, data...)
@@ -405,7 +405,7 @@ func (s *ServiceBase) dispatchRet(cid uint64, data ...interface{}) {
 
 // 添加计时器
 func (s *ServiceBase) schedule(interval uint64, repeat int, cb timer.TimerCbFunc) *timer.Timer {
-	utils.PanicWhen(s.tick <= 0, "service schedule error: tick <= 0")
+	utils.PanicWhen(s.tick < 0, "service schedule error: tick <= 0")
 	return s.ts.Schedule(interval, repeat, cb)
 }
 
@@ -419,7 +419,7 @@ func (s *ServiceBase) OnModuleStartup(sid SID, serviceName string) {
 
 // Send消息
 func (s *ServiceBase) Send(addr SID, msgType MsgType, encType EncType, cmd CmdType, data ...interface{}) {
-	_send(s.GetId(), addr, msgType, encType, 0, cmd, data...)
+	send(s.GetId(), addr, msgType, encType, 0, cmd, data...)
 }
 
 // RawSend not encode variables, be careful use
@@ -472,6 +472,7 @@ func (s *ServiceBase) Ret(dst SID, encType EncType, cid uint64, data ...interfac
 }
 
 func (s *ServiceBase) OnMainLoop(dt int) {
+
 }
 
 // 分发普通消息
@@ -480,6 +481,7 @@ func (s *ServiceBase) OnNormalMSG(msg *Message) {
 }
 
 func (s *ServiceBase) OnSocketMSG(msg *Message) {
+	
 }
 
 func (s *ServiceBase) OnRequestMSG(msg *Message) {
@@ -538,6 +540,7 @@ func (s *ServiceBase) RegisterHandlerMethod(msgType MsgType, cmd CmdType, v inte
 }
 
 func (s *ServiceBase) OnDistributeMSG(msg *Message) {
+
 }
 
 func (s *ServiceBase) OnCloseNotify() {

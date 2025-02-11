@@ -3,7 +3,6 @@ package conf
 import (
 	"encoding/json"
 	"fmt"
-	"gnet/lib/loggerbak"
 	"io/ioutil"
 	"os"
 	"path"
@@ -19,31 +18,6 @@ var (
 	LogMaxLine    int    = 10000                 //log's max line per file
 	LogBufferSize int    = 2000                  //log's max buffer size
 )
-
-// 服务内置配置
-var (
-	CoreIsStandalone bool     = false       //set system is a standalone or multinode
-	CoreIsMaster     bool     = true        //set node is master
-	MasterListenIp   string   = "127.0.0.1" //master listen ip
-	MultiNodePort    string   = "4000"      //master listen port
-	SlaveConnectIp   string   = "127.0.0.1" //master ip
-	SlaveWhiteIPList []string = []string{}  //slave white ip list
-	CallTimeOut      int      = 10000       //global timeout for Call fucntion
-)
-
-func PrintCurrentConfSetToStd() {
-	fmt.Printf("LogFilePath = %v\n", LogFilePath)
-	fmt.Printf("LogFileLevel = %v\n", LogFileLevel)
-	fmt.Printf("LogShellLevel = %v\n", LogShellLevel)
-	fmt.Printf("LogMaxLine = %v\n", LogMaxLine)
-	fmt.Printf("LogBufferSize = %v\n", LogBufferSize)
-	fmt.Printf("CoreIsStandalone = %v\n", CoreIsStandalone)
-	fmt.Printf("CoreIsMaster = %v\n", CoreIsMaster)
-	fmt.Printf("MasterListenIp = %v\n", MasterListenIp)
-	fmt.Printf("SlaveConnectIp = %v\n", SlaveConnectIp)
-	fmt.Printf("MultiNodePort = %v\n", MultiNodePort)
-	fmt.Printf("CallTimeOut = %v\n", CallTimeOut)
-}
 
 // ~
 func assignTo(r map[string]interface{}, target interface{}, name string) {

@@ -12,7 +12,7 @@ import (
 
 // 服务管理器
 type serviceMgr struct {
-	idDict map[uint64]*ServiceBase  	// 服务ID-地址字典
+	sidDict map[uint64]*ServiceBase  	// 服务ID-地址字典
 	nameDict map[string]*ServiceBase  	// 服务名称-地址字典
 	nodeId   uint64   					// 集群节点ID
 	curId    uint64   					// 当前服务ID
@@ -77,7 +77,7 @@ func registService(s *ServiceBase) SID {
 	mgr.curId++
 	id := mgr.curId
 	id = mgr.nodeId<<NODE_ID_OFF | id
-	mgr.idDict[id] = s
+	mgr.sidDict[id] = s
 	mgr.nameDict[name] = s
 	sid := SID(id)
 	s.setId(sid)
@@ -91,12 +91,12 @@ func unregistService(s *ServiceBase) {
 	defer mgr.mutex.Unlock()
 	sid := s.GetId()
 	id := uint64(sid)
-	_, ok := mgr.idDict[id]
+	_, ok := mgr.sidDict[id]
 	if !ok {
 		logzap.Warnw("unregistService ignore: id invalid", "id=", id)
 		return
 	}
-	delete(mgr.idDict, id)
+	delete(mgr.sidDict, id)
 	delete(mgr.nameDict, s.GetName())
 	mgr.group.Done()
 }
@@ -106,7 +106,7 @@ func findServiceById(sid SID) (s *ServiceBase, err error) {
 	mgr.mutex.Lock()
 	defer mgr.mutex.Unlock()
 	id := uint64(sid)
-	s, ok := mgr.idDict[id]
+	s, ok := mgr.sidDict[id]
 	if !ok {
 		err = errors.New("findServiceById failed")
 		return nil, err

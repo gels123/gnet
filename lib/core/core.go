@@ -56,22 +56,17 @@ func PrintArgListForFunc(f reflect.Value) {
 	fmt.Println(str)
 }
 
-// Parse Node Id parse node sid from service sid
-func ParseNodeId(id SID) uint64 {
-	return id.NodeId()
-}
-
 // Send send a message to dst service no src service.
 func Send(dst SID, msgType MsgType, encType EncType, cmd CmdType, data ...interface{}) error {
-	return _send(INVALID_SRC_ID, dst, msgType, encType, 0, cmd, data...)
+	return send(INVALID_SRC_ID, dst, msgType, encType, 0, cmd, data...)
 }
 
 // SendCloseToAll simple send a close msg to all service
 func SendCloseToAll() {
-	mgr.dicMutex.Lock()
-	defer mgr.dicMutex.Unlock()
-	for _, ser := range mgr.idDict {
-		sendLocal(INVALID_SRC_ID, ser, MSG_TYPE_CLOSE, MSG_ENC_TYPE_NO, 0, Cmd_None, false)
+	mgr.mutex.Lock()
+	defer mgr.mutex.Unlock()
+	for _, ser := range mgr.sidDict {
+		sendLocal(INVALID_SRC_ID, ser, MSG_TYPE_CLOSE, MSG_ENC_TYPE_NIL, 0, Cmd_None, false)
 	}
 }
 

@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"gnet/lib/core"
 	"gnet/lib/logsimple"
 	"testing"
 	"time"
